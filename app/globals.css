@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/*
+  Cham Business Ltd — design system
+  Palette grounded in Rwanda: forest green (growth, trust), warm gold (value),
+  cream paper, charcoal text. Fraunces for display, Inter for body.
+*/
+@theme {
+  --color-forest: #0b3d2e;
+  --color-forest-deep: #082a20;
+  --color-forest-soft: #14543f;
+  --color-gold: #e0a82e;
+  --color-gold-soft: #f0c95f;
+  --color-cream: #faf7f0;
+  --color-cream-deep: #f1ebdd;
+  --color-ink: #1c1a17;
+  --color-ink-soft: #4a463f;
+  --color-line: #e2dccd;
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+}
+
+:root {
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Visible keyboard focus across the site */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
