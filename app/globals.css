@@ -2,46 +2,43 @@
 
 /*
   Cham Business Ltd — design system
-  Palette grounded in Rwanda: forest green (growth, trust), warm gold (value),
-  cream paper, charcoal text. Fraunces for display, Inter for body.
+  Warm & approachable. Softened blue primary, warm peach accent, warm off-white.
+  Modern sans throughout: Plus Jakarta Sans (display) + Inter (body).
 */
 @theme {
-  /* Primary — cool blue */
-  --color-forest: #1d63d1;
-  --color-forest-deep: #103f8c;
-  --color-forest-soft: #2f7ce8;
-  /* Accent — cool cyan */
-  --color-gold: #18b8c4;
-  --color-gold-soft: #54d3dc;
-  /* Neutrals — cool, blue-tinted */
-  --color-cream: #f5f8fc;
-  --color-cream-deep: #e8eef7;
-  --color-ink: #131923;
-  --color-ink-soft: #465061;
-  --color-line: #d6e0ee;
+  /* Primary — friendly blue */
+  --color-brand: #2563b8;
+  --color-brand-deep: #1b4a8f;
+  --color-brand-soft: #4f86d6;
+  --color-brand-wash: #eaf1fb;
+  /* Accent — warm peach */
+  --color-accent: #ff9d6b;
+  --color-accent-soft: #ffb892;
+  --color-accent-deep: #f07f47;
+  /* Warm neutrals */
+  --color-paper: #fbfaf8;
+  --color-paper-deep: #f3f0ea;
+  --color-ink: #1a2740;
+  --color-ink-soft: #5a6478;
+  --color-line: #e7e3db;
+  --color-white: #ffffff;
 
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-jakarta);
   --font-sans: var(--font-inter);
 }
 
-:root {
-  --background: var(--color-cream);
-  --foreground: var(--color-ink);
-}
-
-* {
-  border-color: var(--color-line);
-}
-
 body {
-  background: var(--color-cream);
+  background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Respect reduced-motion preferences */
+.font-display {
+  font-family: var(--font-display);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -52,9 +49,8 @@ body {
   }
 }
 
-/* Visible keyboard focus across the site */
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 4px;
 }

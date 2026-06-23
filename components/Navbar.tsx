@@ -14,41 +14,37 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--color-line)] bg-[var(--color-cream)]/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[var(--color-line)] bg-[var(--color-paper)]/90 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-        {/* Brand */}
         <Link href="/" className="flex items-center gap-2.5" aria-label="Cham Business home">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--color-forest)] text-[var(--color-gold)]">
-            {/* Stylised hills mark */}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M2 18c3-6 5-6 7-2 2-7 5-9 8-2 1 2 3 4 5 4v4H2v-4Z" fill="currentColor" />
+          <span className="grid h-9 w-9 place-items-center rounded-2xl bg-[var(--color-brand)] text-white">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 14c0-4 3-7 8-7s8 3 8 7-3 6-8 6c-1.4 0-2.7-.2-3.8-.6L4 21l1-3.4A6.6 6.6 0 0 1 4 14Z" fill="currentColor" />
             </svg>
           </span>
-          <span className="font-display text-xl font-semibold tracking-tight text-[var(--color-forest)]">
+          <span className="font-display text-xl font-bold tracking-tight text-[var(--color-brand)]">
             Cham Business
           </span>
         </Link>
 
-        {/* Desktop links */}
         <div className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-forest)]"
+              className="text-sm font-medium text-[var(--color-ink-soft)] transition-colors hover:text-[var(--color-brand)]"
             >
               {l.label}
             </Link>
           ))}
           <Link
             href="/apply"
-            className="rounded-full bg-[var(--color-forest)] px-5 py-2.5 text-sm font-semibold text-[var(--color-cream)] transition-colors hover:bg-[var(--color-forest-soft)]"
+            className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-brand-deep)]"
           >
             Apply now
           </Link>
         </div>
 
-        {/* Mobile toggle */}
         <button
           onClick={() => setOpen(!open)}
           className="md:hidden"
@@ -61,7 +57,6 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile menu */}
       {open && (
         <div className="border-t border-[var(--color-line)] px-5 py-4 md:hidden">
           <div className="flex flex-col gap-1">
@@ -70,7 +65,7 @@ export default function Navbar() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--color-ink-soft)] hover:bg-[var(--color-cream-deep)]"
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-ink-soft)] hover:bg-[var(--color-brand-wash)]"
               >
                 {l.label}
               </Link>
@@ -78,7 +73,7 @@ export default function Navbar() {
             <Link
               href="/apply"
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-[var(--color-forest)] px-5 py-3 text-center text-sm font-semibold text-[var(--color-cream)]"
+              className="mt-2 rounded-full bg-[var(--color-brand)] px-5 py-3 text-center text-sm font-semibold text-white"
             >
               Apply now
             </Link>

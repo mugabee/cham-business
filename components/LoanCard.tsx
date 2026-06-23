@@ -1,36 +1,34 @@
 import Link from "next/link";
+import type { LoanProduct } from "@/lib/site";
 
-type LoanCardProps = {
-  name: string;
-  blurb: string;
-  range: string;
-  term: string;
-};
-
-export default function LoanCard({ name, blurb, range, term }: LoanCardProps) {
+export default function LoanCard({ loan }: { loan: LoanProduct }) {
   return (
-    <div className="group flex flex-col rounded-2xl border border-[var(--color-line)] bg-white p-7 transition-shadow hover:shadow-[0_8px_30px_rgba(11,61,46,0.08)]">
-      <h3 className="font-display text-xl font-semibold text-[var(--color-forest)]">
-        {name}
+    <div className="group flex flex-col rounded-3xl border border-[var(--color-line)] bg-white p-7 transition-all hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(37,99,184,0.10)]">
+      <h3 className="font-display text-xl font-bold text-[var(--color-ink)]">
+        {loan.name}
       </h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--color-ink-soft)]">
-        {blurb}
+        {loan.blurb}
       </p>
 
       <dl className="mt-5 space-y-2 border-t border-[var(--color-line)] pt-5 text-sm">
         <div className="flex justify-between">
           <dt className="text-[var(--color-ink-soft)]">Amount</dt>
-          <dd className="font-semibold text-[var(--color-ink)]">{range}</dd>
+          <dd className="font-semibold text-[var(--color-ink)]">{loan.range}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-[var(--color-ink-soft)]">Term</dt>
-          <dd className="font-semibold text-[var(--color-ink)]">{term}</dd>
+          <dd className="font-semibold text-[var(--color-ink)]">{loan.term}</dd>
+        </div>
+        <div className="flex justify-between">
+          <dt className="text-[var(--color-ink-soft)]">Rate</dt>
+          <dd className="font-semibold text-[var(--color-ink)]">{loan.rate}</dd>
         </div>
       </dl>
 
       <Link
         href="/apply"
-        className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-forest)] group-hover:gap-2.5 transition-all"
+        className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-brand)] transition-all group-hover:gap-2.5"
       >
         Apply for this loan
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">

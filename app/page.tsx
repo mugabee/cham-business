@@ -1,70 +1,49 @@
 import Link from "next/link";
 import LoanCard from "@/components/LoanCard";
-
-const loans = [
-  {
-    name: "Salary Advance",
-    blurb: "Bridge the gap before payday with a short-term advance against your monthly salary.",
-    range: "RWF 50K – 1M",
-    term: "1 – 3 months",
-  },
-  {
-    name: "Personal Loan",
-    blurb: "Flexible funds for school fees, medical costs, or family needs, repaid in steady instalments.",
-    range: "RWF 200K – 5M",
-    term: "3 – 24 months",
-  },
-  {
-    name: "Business Boost",
-    blurb: "Working capital for individual traders and small businesses ready to grow stock or operations.",
-    range: "RWF 500K – 10M",
-    term: "6 – 36 months",
-  },
-];
+import Wave from "@/components/Wave";
+import { loanProducts } from "@/lib/site";
 
 const steps = [
-  { n: "01", title: "Apply", text: "Fill a short form online or visit our office in Kigali. It takes a few minutes." },
-  { n: "02", title: "Get assessed", text: "We review your details and check affordability — fairly and transparently." },
-  { n: "03", title: "Receive funds", text: "Approved loans are disbursed quickly, straight to your mobile money or bank." },
+  { title: "Apply in minutes", text: "Fill a short form online or visit our office in Kigali. No long paperwork." },
+  { title: "We review fairly", text: "We check affordability openly and get back to you, usually within 24 hours." },
+  { title: "Get your funds", text: "Approved loans go straight to your mobile money or bank, often the same day." },
 ];
 
 export default function Home() {
   return (
     <>
-      {/* ===== Hero ===== */}
-      <section className="relative overflow-hidden bg-[var(--color-forest)] text-[var(--color-cream)]">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-44 pt-20 md:grid-cols-2 md:pt-28">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-[var(--color-brand)] text-white">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-40 pt-20 md:grid-cols-2 md:pt-28">
           <div>
-            <span className="inline-block rounded-full border border-[var(--color-gold)]/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-gold-soft)]">
+            <span className="inline-block rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
               Registered non-deposit lender · Rwanda
             </span>
-            <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-              Fair loans for
+            <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.08] tracking-tight md:text-6xl">
+              Money help that
               <br />
-              <span className="text-[var(--color-gold-soft)]">real people.</span>
+              <span className="text-[var(--color-accent-soft)]">treats you like a person.</span>
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-[var(--color-cream)]/80">
-              Cham Business Ltd lends to individuals across Rwanda — quickly,
-              transparently, and without the runaround. No deposits, no hidden
-              costs.
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85">
+              Cham Business lends to individuals across Rwanda — quickly, clearly,
+              and kindly. No deposits, no hidden costs, no runaround.
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link
                 href="/apply"
-                className="rounded-full bg-[var(--color-gold)] px-7 py-3.5 font-semibold text-[var(--color-forest-deep)] transition-colors hover:bg-[var(--color-gold-soft)]"
+                className="rounded-full bg-[var(--color-accent)] px-7 py-3.5 font-semibold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
               >
                 Apply now
               </Link>
               <Link
                 href="/loans"
-                className="rounded-full border border-[var(--color-cream)]/30 px-7 py-3.5 font-semibold text-[var(--color-cream)] transition-colors hover:bg-[var(--color-cream)]/10"
+                className="rounded-full border border-white/40 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10"
               >
                 See loan options
               </Link>
             </div>
           </div>
 
-          {/* Quick trust facts */}
           <div className="flex items-end">
             <div className="grid w-full grid-cols-2 gap-4">
               {[
@@ -73,66 +52,51 @@ export default function Home() {
                 { big: "0", small: "Hidden fees, ever" },
                 { big: "100%", small: "Rwanda-based & registered" },
               ].map((f) => (
-                <div
-                  key={f.small}
-                  className="rounded-2xl border border-[var(--color-cream)]/15 bg-[var(--color-forest-soft)]/40 p-5"
-                >
-                  <div className="font-display text-3xl font-semibold text-[var(--color-gold-soft)]">
+                <div key={f.small} className="rounded-3xl bg-white/12 p-5 backdrop-blur-sm">
+                  <div className="font-display text-3xl font-extrabold text-[var(--color-accent-soft)]">
                     {f.big}
                   </div>
-                  <div className="mt-1 text-sm text-[var(--color-cream)]/70">
-                    {f.small}
-                  </div>
+                  <div className="mt-1 text-sm text-white/75">{f.small}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Signature: layered hills */}
-        <svg
-          className="absolute bottom-0 left-0 w-full"
-          viewBox="0 0 1440 160"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path d="M0 90c240-70 480-70 720 0s480 70 720 0v70H0V90Z" fill="var(--color-forest-soft)" opacity="0.5" />
-          <path d="M0 120c280-50 520-30 760 10s460 30 680-20v50H0v-40Z" fill="var(--color-cream)" />
-        </svg>
+        <Wave className="absolute bottom-0 left-0 w-full" />
       </section>
 
-      {/* ===== Loan products ===== */}
+      {/* Loan products */}
       <section className="mx-auto max-w-6xl px-5 py-20">
         <div className="max-w-xl">
-          <h2 className="font-display text-3xl font-semibold text-[var(--color-forest)] md:text-4xl">
+          <h2 className="font-display text-3xl font-extrabold text-[var(--color-ink)] md:text-4xl">
             Loans built around your life
           </h2>
           <p className="mt-3 text-[var(--color-ink-soft)]">
-            Whatever you need it for, we keep the terms clear and the process
-            simple.
+            Whatever you need it for, we keep the terms clear and the process simple.
           </p>
         </div>
 
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {loans.map((loan) => (
-            <LoanCard key={loan.name} {...loan} />
+          {loanProducts.map((loan) => (
+            <LoanCard key={loan.slug} loan={loan} />
           ))}
         </div>
       </section>
 
-      {/* ===== How it works ===== */}
-      <section className="bg-[var(--color-cream-deep)]">
+      {/* How it works */}
+      <section className="bg-[var(--color-brand-wash)]">
         <div className="mx-auto max-w-6xl px-5 py-20">
-          <h2 className="font-display text-3xl font-semibold text-[var(--color-forest)] md:text-4xl">
-            Three steps to funded
+          <h2 className="font-display text-3xl font-extrabold text-[var(--color-ink)] md:text-4xl">
+            Three simple steps
           </h2>
-          <div className="mt-12 grid gap-10 md:grid-cols-3">
-            {steps.map((s) => (
-              <div key={s.n}>
-                <div className="font-display text-5xl font-semibold text-[var(--color-gold)]">
-                  {s.n}
-                </div>
-                <h3 className="mt-3 font-display text-xl font-semibold text-[var(--color-forest)]">
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {steps.map((s, i) => (
+              <div key={s.title} className="rounded-3xl bg-white p-7">
+                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--color-accent)] font-display text-lg font-bold text-[var(--color-ink)]">
+                  {i + 1}
+                </span>
+                <h3 className="mt-4 font-display text-xl font-bold text-[var(--color-ink)]">
                   {s.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-soft)]">
@@ -144,15 +108,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== CTA ===== */}
+      {/* CTA */}
       <section className="mx-auto max-w-6xl px-5 py-20">
-        <div className="rounded-3xl bg-[var(--color-forest)] px-8 py-14 text-center text-[var(--color-cream)] md:px-16">
-          <h2 className="mx-auto max-w-2xl font-display text-3xl font-semibold leading-tight md:text-4xl">
+        <div className="overflow-hidden rounded-[2rem] bg-[var(--color-brand)] px-8 py-14 text-center text-white md:px-16">
+          <h2 className="mx-auto max-w-2xl font-display text-3xl font-extrabold leading-tight md:text-4xl">
             Ready when you are. Apply in a few minutes.
           </h2>
+          <p className="mx-auto mt-4 max-w-md text-white/80">
+            A quick form is all it takes to get started. No obligation.
+          </p>
           <Link
             href="/apply"
-            className="mt-8 inline-block rounded-full bg-[var(--color-gold)] px-8 py-3.5 font-semibold text-[var(--color-forest-deep)] transition-colors hover:bg-[var(--color-gold-soft)]"
+            className="mt-8 inline-block rounded-full bg-[var(--color-accent)] px-8 py-3.5 font-semibold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
           >
             Start your application
           </Link>

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const fraunces = Fraunces({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Cham Business Ltd — Personal Loans in Rwanda",
+  title: "Cham Business Ltd — Friendly Personal Loans in Rwanda",
   description:
     "Cham Business Ltd is a registered non-deposit lender offering fast, fair personal loans to individuals across Rwanda. Apply in minutes.",
   keywords: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     "Cham Business Ltd",
   ],
   openGraph: {
-    title: "Cham Business Ltd — Personal Loans in Rwanda",
+    title: "Cham Business Ltd — Friendly Personal Loans in Rwanda",
     description:
       "Fast, fair personal loans for individuals across Rwanda. Apply in minutes.",
     locale: "en_RW",
@@ -42,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${inter.variable}`}>
+      <body className={`${jakarta.variable} ${inter.variable}`}>
         <Navbar />
         <main>{children}</main>
         <Footer />
