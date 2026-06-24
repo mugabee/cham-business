@@ -8,6 +8,8 @@ export const company = {
   phone: "+250 780 123 779",
   whatsapp: "+250780123779",
   email: "chambusinessltd@gmail.com",
+  tiktok: "chambusinessltd",
+  instagram: "cham_business_ltd",
   // Replace with real registration details once confirmed
   registrationNote:
     "Cham Business Ltd is a non-deposit lending institution. We do not accept deposits from the public. Company registration no. [TIN/RDB number].",
