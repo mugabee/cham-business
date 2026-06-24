@@ -19,44 +19,118 @@ export type LoanProduct = {
   slug: string;
   name: string;
   blurb: string;
-  range: string;
-  term: string;
-  rate: string;
+  description: string;
   goodFor: string[];
+};
+
+// All loan types share the same quick-fact terms
+export const loanTerms = {
+  range: "RWF 300,000 – 20,000,000",
+  rate: "5% flat / month",
+  term: "Agreed with you",
 };
 
 export const loanProducts: LoanProduct[] = [
   {
-    slug: "salary-advance",
-    name: "Salary Advance",
-    blurb:
-      "A short-term advance against your monthly salary, to bridge the gap before payday.",
-    range: "RWF 50,000 – 1,000,000",
-    term: "1 – 3 months",
-    rate: "From 3% / month",
-    goodFor: ["Unexpected bills", "Rent before payday", "Quick cash needs"],
+    slug: "plots-house",
+    name: "Plots & House Loan",
+    blurb: "Finance land or property purchases with a loan sized to match the opportunity.",
+    description:
+      "Whether you are buying a plot to build on or securing a house for your family, our Plots & House Loan gives you the capital to act quickly. We work with you to agree a repayment schedule that fits your income — weekly, fortnightly, or monthly — so ownership feels manageable from day one. Loans start at RWF 300,000 and go up to RWF 20,000,000 depending on your affordability assessment.",
+    goodFor: ["Buying land", "Purchasing a home", "Property investment"],
   },
   {
-    slug: "personal-loan",
+    slug: "emergency",
+    name: "Emergency Loan",
+    blurb: "Fast funds when something urgent can't wait — medical bills, repairs, or family crises.",
+    description:
+      "Life doesn't give advance notice. Our Emergency Loan is designed to get money into your hands as quickly as possible — often the same day you apply — so you can deal with the situation without the extra stress of a slow process. We keep the paperwork minimal and the decision fast. Tell us what you need and we will find a repayment rhythm that works for you.",
+    goodFor: ["Medical emergencies", "Urgent repairs", "Unexpected family expenses"],
+  },
+  {
+    slug: "business",
+    name: "Business Loan",
+    blurb: "Working capital to buy stock, grow operations, or bridge a gap in your business cash flow.",
+    description:
+      "From market traders needing to restock before a busy season to small shop owners expanding their range, our Business Loan supports individual entrepreneurs across Rwanda. Borrow from RWF 300,000 up to RWF 20,000,000. We assess your business records openly and agree a repayment plan around your trading cycle — so repayments go out when money is coming in.",
+    goodFor: ["Buying stock", "Equipment & tools", "Expanding your business"],
+  },
+  {
+    slug: "personal",
     name: "Personal Loan",
-    blurb:
-      "Flexible funds for school fees, medical costs, or family needs, repaid in steady instalments.",
-    range: "RWF 200,000 – 5,000,000",
-    term: "3 – 24 months",
-    rate: "From 2.5% / month",
-    goodFor: ["School fees", "Medical costs", "Home improvements"],
+    blurb: "Flexible funding for school fees, home improvements, or any personal need.",
+    description:
+      "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. The rate is a flat 5% per month on the amount you borrow, and we agree the repayment period together before you sign anything.",
+    goodFor: ["School & tuition fees", "Home improvements", "Family events"],
   },
   {
-    slug: "business-boost",
-    name: "Business Boost",
-    blurb:
-      "Working capital for individual traders and small businesses ready to grow stock or operations.",
-    range: "RWF 500,000 – 10,000,000",
-    term: "6 – 36 months",
-    rate: "From 2% / month",
-    goodFor: ["Buying stock", "Equipment", "Growing a small business"],
+    slug: "salary",
+    name: "Salary Loan",
+    blurb: "An advance against your salary to cover costs before payday arrives.",
+    description:
+      "If you are employed and need funds before your next pay cheque, our Salary Loan is the quickest route. We verify your income, agree an amount, and disburse — often the same day. Repayments are structured to align with your salary dates so you are never caught short. Suitable for civil servants, private-sector employees, and anyone with a regular, verifiable income.",
+    goodFor: ["Bridging to payday", "Rent & utilities", "Quick personal needs"],
+  },
+  {
+    slug: "car",
+    name: "Car Loan",
+    blurb: "Buy the vehicle you need — for work, family transport, or business — with straightforward terms.",
+    description:
+      "Whether you need a car for daily commuting, running a delivery business, or family transport, our Car Loan helps you get on the road without draining your savings. Borrow up to RWF 20,000,000. We agree the repayment schedule around your income so monthly instalments are predictable. The flat 5% monthly interest means you always know exactly what you owe.",
+    goodFor: ["Personal vehicle", "Work & delivery transport", "Business use"],
   },
 ];
+
+export const loanDetails = {
+  "plots-house":
+    "Whether you are buying a plot to build on or securing a house for your family, our Plots & House Loan gives you the capital to act quickly. We work with you to agree a repayment schedule that fits your income — weekly, fortnightly, or monthly — so ownership feels manageable from day one. Loans start at RWF 300,000 and go up to RWF 20,000,000 depending on your affordability assessment.",
+  emergency:
+    "Life doesn't give advance notice. Our Emergency Loan is designed to get money into your hands as quickly as possible — often the same day you apply — so you can deal with the situation without the extra stress of a slow process. We keep the paperwork minimal and the decision fast. Tell us what you need and we will find a repayment rhythm that works for you.",
+  business:
+    "From market traders needing to restock before a busy season to small shop owners expanding their range, our Business Loan supports individual entrepreneurs across Rwanda. Borrow from RWF 300,000 up to RWF 20,000,000. We assess your business records openly and agree a repayment plan around your trading cycle — so repayments go out when money is coming in.",
+  personal:
+    "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. The rate is a flat 5% per month on the amount you borrow, and we agree the repayment period together before you sign anything.",
+  salary:
+    "If you are employed and need funds before your next pay cheque, our Salary Loan is the quickest route. We verify your income, agree an amount, and disburse — often the same day. Repayments are structured to align with your salary dates so you are never caught short. Suitable for civil servants, private-sector employees, and anyone with a regular, verifiable income.",
+  car: "Whether you need a car for daily commuting, running a delivery business, or family transport, our Car Loan helps you get on the road without draining your savings. Borrow up to RWF 20,000,000. We agree the repayment schedule around your income so monthly instalments are predictable. The flat 5% monthly interest means you always know exactly what you owe.",
+};
+
+export const interestExplainer = {
+  headline: "How our interest works",
+  summary:
+    "We charge a flat 5% per month on the amount you borrow. There are no hidden fees, no compound interest, and no surprises — you see the full cost before you agree to anything.",
+  example: {
+    principal: "RWF 1,000,000",
+    months: 4,
+    monthlyInterest: "RWF 50,000",
+    totalInterest: "RWF 200,000",
+    totalRepayment: "RWF 1,200,000",
+    breakdown:
+      "Borrow RWF 1,000,000 for 4 months at 5% flat: RWF 1,000,000 × 5% = RWF 50,000 interest per month. Over 4 months that is RWF 200,000 total interest, making your total repayment RWF 1,200,000.",
+  },
+};
+
+export const applyRequirements = [
+  { label: "National ID", detail: "A valid Rwandan national identity card." },
+  {
+    label: "Proof of income",
+    detail:
+      "A recent payslip, bank statement, or business records showing your regular income.",
+  },
+  {
+    label: "Account details",
+    detail:
+      "Your mobile money number (MTN or Airtel) or bank account for disbursement.",
+  },
+  {
+    label: "Loan purpose",
+    detail:
+      "A brief explanation of what the funds are for — this helps us find the right product and amount for you.",
+  },
+];
+
+export const repaymentExplainer =
+  "We don't force you into a one-size-fits-all schedule. Repayments can be made daily, weekly, or monthly — whichever matches your income pattern. We agree the schedule with you before the loan is disbursed, and it is written into your agreement so there is no ambiguity. If your circumstances change, contact us early and we will work with you.";
 
 export const faqs = [
   {

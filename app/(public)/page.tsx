@@ -48,7 +48,7 @@ export default function Home() {
             <div className="grid w-full grid-cols-2 gap-4">
               {[
                 { big: "24h", small: "Typical decision time" },
-                { big: "RWF 10M", small: "Maximum loan amount" },
+                { big: "RWF 20M", small: "Maximum loan amount" },
                 { big: "0", small: "Hidden fees, ever" },
                 { big: "100%", small: "Rwanda-based & registered" },
               ].map((f) => (

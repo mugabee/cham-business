@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { LoanProduct } from "@/lib/site";
+import { loanTerms } from "@/lib/site";
 
 export default function LoanCard({ loan }: { loan: LoanProduct }) {
   return (
@@ -14,15 +15,15 @@ export default function LoanCard({ loan }: { loan: LoanProduct }) {
       <dl className="mt-5 space-y-2 border-t border-[var(--color-line)] pt-5 text-sm">
         <div className="flex justify-between">
           <dt className="text-[var(--color-ink-soft)]">Amount</dt>
-          <dd className="font-semibold text-[var(--color-ink)]">{loan.range}</dd>
+          <dd className="font-semibold text-[var(--color-ink)]">{loanTerms.range}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-[var(--color-ink-soft)]">Term</dt>
-          <dd className="font-semibold text-[var(--color-ink)]">{loan.term}</dd>
+          <dd className="font-semibold text-[var(--color-ink)]">{loanTerms.term}</dd>
         </div>
         <div className="flex justify-between">
           <dt className="text-[var(--color-ink-soft)]">Rate</dt>
-          <dd className="font-semibold text-[var(--color-ink)]">{loan.rate}</dd>
+          <dd className="font-semibold text-[var(--color-ink)]">{loanTerms.rate}</dd>
         </div>
       </dl>
 
