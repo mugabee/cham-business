@@ -4,9 +4,10 @@
 export const company = {
   name: "Cham Business Ltd",
   tagline: "Friendly loans for everyday life",
-  city: "Kigali, Rwanda",
-  phone: "+250 7XX XXX XXX",
-  email: "info@chambusiness.rw",
+  address: "Kicukiro Modern Market, Kigali, Rwanda",
+  phone: "+250 780 123 779",
+  whatsapp: "+250780123779",
+  email: "chambusinessltd@gmail.com",
   // Replace with real registration details once confirmed
   registrationNote:
     "Cham Business Ltd is a non-deposit lending institution. We do not accept deposits from the public. Company registration no. [TIN/RDB number].",
