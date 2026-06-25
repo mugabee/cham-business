@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Loan Products — Cham Business Ltd",
   description:
-    "Six loan types, one flat rate. RWF 300,000–20,000,000 at 5% per month, repayment agreed with you.",
+    "Six loan types, one clear rate. RWF 300,000–20,000,000 at 5% per month on the reducing balance, repayment agreed with you.",
 };
 
 export default function LoansPage() {
@@ -21,7 +21,7 @@ export default function LoansPage() {
       <PageHeader
         eyebrow="Our loans"
         title="Six loans, one clear rate"
-        subtitle="Every loan type we offer carries the same flat 5% monthly interest and the same honest terms. No surprises."
+        subtitle="Every loan type we offer carries the same 5% monthly reducing-balance rate and the same honest terms. No surprises."
       />
 
       {/* Quick-facts banner */}
@@ -136,8 +136,8 @@ export default function LoansPage() {
               {[
                 { label: "Principal", value: interestExplainer.example.principal },
                 {
-                  label: "Interest / month",
-                  value: interestExplainer.example.monthlyInterest,
+                  label: "Monthly payment",
+                  value: interestExplainer.example.monthlyPayment,
                 },
                 {
                   label: "Total interest",

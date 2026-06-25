@@ -26,7 +26,7 @@ export type LoanProduct = {
 // All loan types share the same quick-fact terms
 export const loanTerms = {
   range: "RWF 300,000 – 20,000,000",
-  rate: "5% flat / month",
+  rate: "5% / month (reducing balance)",
   term: "Agreed with you",
 };
 
@@ -60,7 +60,7 @@ export const loanProducts: LoanProduct[] = [
     name: "Personal Loan",
     blurb: "Flexible funding for school fees, home improvements, or any personal need.",
     description:
-      "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. The rate is a flat 5% per month on the amount you borrow, and we agree the repayment period together before you sign anything.",
+      "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. Interest is charged at 5% per month on the reducing balance, and we agree the repayment period together before you sign anything.",
     goodFor: ["School & tuition fees", "Home improvements", "Family events"],
   },
   {
@@ -89,24 +89,24 @@ export const loanDetails = {
   business:
     "From market traders needing to restock before a busy season to small shop owners expanding their range, our Business Loan supports individual entrepreneurs across Rwanda. Borrow from RWF 300,000 up to RWF 20,000,000. We assess your business records openly and agree a repayment plan around your trading cycle — so repayments go out when money is coming in.",
   personal:
-    "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. The rate is a flat 5% per month on the amount you borrow, and we agree the repayment period together before you sign anything.",
+    "Whatever life brings — school fees, a ceremony, home renovations, or simply a gap you need to bridge — our Personal Loan puts the money in your account with clear, agreed terms. There are no hidden charges. Interest is charged at 5% per month on the reducing balance, and we agree the repayment period together before you sign anything.",
   salary:
     "If you are employed and need funds before your next pay cheque, our Salary Loan is the quickest route. We verify your income, agree an amount, and disburse — often the same day. Repayments are structured to align with your salary dates so you are never caught short. Suitable for civil servants, private-sector employees, and anyone with a regular, verifiable income.",
-  car: "Whether you need a car for daily commuting, running a delivery business, or family transport, our Car Loan helps you get on the road without draining your savings. Borrow up to RWF 20,000,000. We agree the repayment schedule around your income so monthly instalments are predictable. The flat 5% monthly interest means you always know exactly what you owe.",
+  car: "Whether you need a car for daily commuting, running a delivery business, or family transport, our Car Loan helps you get on the road without draining your savings. Borrow up to RWF 20,000,000. We agree the repayment schedule around your income so monthly instalments are predictable. Interest is charged at 5% per month on the reducing balance, so as you repay, the interest portion shrinks.",
 };
 
 export const interestExplainer = {
   headline: "How our interest works",
   summary:
-    "We charge a flat 5% per month on the amount you borrow. There are no hidden fees, no compound interest, and no surprises — you see the full cost before you agree to anything.",
+    "We charge 5% per month on the remaining balance — not the original amount. As you repay, the interest portion of each payment shrinks and more goes toward the principal. Every payment is equal, and you see the full schedule before you sign anything.",
   example: {
     principal: "RWF 1,000,000",
     months: 4,
-    monthlyInterest: "RWF 50,000",
-    totalInterest: "RWF 200,000",
-    totalRepayment: "RWF 1,200,000",
+    monthlyPayment: "RWF 282,012",
+    totalInterest: "RWF 128,047",
+    totalRepayment: "RWF 1,128,047",
     breakdown:
-      "Borrow RWF 1,000,000 for 4 months at 5% flat: RWF 1,000,000 × 5% = RWF 50,000 interest per month. Over 4 months that is RWF 200,000 total interest, making your total repayment RWF 1,200,000.",
+      "Borrow RWF 1,000,000 for 4 months at 5% per month on the reducing balance: each of the 4 equal monthly payments is about RWF 282,012. Total interest paid is about RWF 128,047, making your total repayment about RWF 1,128,047. Exact figures depend on the amount and period agreed, and your full repayment schedule is shown before you sign.",
   },
 };
 
