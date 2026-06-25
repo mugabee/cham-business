@@ -101,12 +101,14 @@ export const interestExplainer = {
     "We charge 5% per month on the remaining balance — not the original amount. As you repay, the interest portion of each payment shrinks and more goes toward the principal. Every payment is equal, and you see the full schedule before you sign anything.",
   example: {
     principal: "RWF 1,000,000",
-    months: 4,
-    monthlyPayment: "RWF 282,012",
-    totalInterest: "RWF 128,047",
-    totalRepayment: "RWF 1,128,047",
+    months: "4 months",
+    monthlyPayment: "≈ RWF 282,012",
+    totalInterest: "≈ RWF 128,047",
+    totalRepayment: "≈ RWF 1,128,047",
     breakdown:
-      "Borrow RWF 1,000,000 for 4 months at 5% per month on the reducing balance: each of the 4 equal monthly payments is about RWF 282,012. Total interest paid is about RWF 128,047, making your total repayment about RWF 1,128,047. Exact figures depend on the amount and period agreed, and your full repayment schedule is shown before you sign.",
+      "Because interest is charged on the reducing balance, the interest portion of each payment shrinks as you repay — but your payment stays the same every month.",
+    disclaimer:
+      "This is an illustration. Your exact payment and schedule depend on the amount and period you agree with us, and the full schedule is shown before you sign.",
   },
 };
 

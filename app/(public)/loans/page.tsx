@@ -129,7 +129,7 @@ export default function LoansPage() {
               </p>
               <p className="mt-1 font-display text-lg font-bold text-[var(--color-ink)]">
                 Borrow {interestExplainer.example.principal} for{" "}
-                {interestExplainer.example.months} months
+                {interestExplainer.example.months}
               </p>
             </div>
             <dl className="grid grid-cols-2 gap-0 divide-x divide-y divide-[var(--color-line)] md:grid-cols-4 md:divide-y-0">
@@ -167,6 +167,9 @@ export default function LoansPage() {
             </dl>
             <p className="border-t border-[var(--color-line)] px-7 py-4 text-sm text-[var(--color-ink-soft)]">
               {interestExplainer.example.breakdown}
+            </p>
+            <p className="border-t border-[var(--color-line)] px-7 py-4 text-xs text-[var(--color-ink-soft)] italic">
+              {interestExplainer.example.disclaimer}
             </p>
           </div>
         </div>
