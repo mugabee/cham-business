@@ -24,3 +24,24 @@ export const applicationSchema = z.object({
 });
 
 export type ApplicationData = z.infer<typeof applicationSchema>;
+
+// Staff auth schemas.
+export const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Please enter your password"),
+});
+
+export const requestResetSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });

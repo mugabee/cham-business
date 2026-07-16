@@ -1,49 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { SESSION_COOKIE_NAME } from "@/lib/session-cookie";
 
-export async function proxy(req: NextRequest) {
-  let response = NextResponse.next({ request: req });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            req.cookies.set(name, value)
-          );
-          response = NextResponse.next({ request: req });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // Refreshes the session if expired — must be called before any redirect logic.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+// Lightweight, DB-free gate: only checks whether a session cookie is present.
+// The authoritative check (does the token hash exist in `sessions`, is it
+// unexpired) happens in verifySession() (lib/dal.ts), called from the admin
+// layout — this is defense in depth, not the only check.
+export function proxy(req: NextRequest) {
+  const hasSession = Boolean(req.cookies.get(SESSION_COOKIE_NAME)?.value);
 
   const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
   const isLoginPage = req.nextUrl.pathname === "/login";
 
-  if (isAdminRoute && !user) {
+  if (isAdminRoute && !hasSession) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
   }
 
-  if (isLoginPage && user) {
+  if (isLoginPage && hasSession) {
     return NextResponse.redirect(new URL("/admin", req.nextUrl));
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.svg$).*)"],
+  matcher: ["/admin/:path*", "/login"],
 };
