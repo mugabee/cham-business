@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/echo "Deploy checkout complete — no separate file copy needed, application root matches the repository path."
