@@ -20,6 +20,9 @@
 # production
 /build
 
+# Phusion Passenger (cPanel Node.js App) restart-trigger folder
+/tmp
+
 # misc
 .DS_Store
 *.pem
