@@ -1,8 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import fs from "fs";
-import path from "path";
+import { pool } from "@/lib/db";
 import {
   SESSION_COOKIE_NAME,
   sessionCookieOptions,
@@ -22,17 +21,21 @@ import {
 } from "@/lib/validation";
 
 // TEMPORARY debug logging to diagnose a production-only login crash.
-function logDebug(label: string, err: unknown) {
-  const entry = `[${new Date().toISOString()}] ${label}: ${
-    err instanceof Error ? err.stack : String(err)
-  }\n`;
-  fs.appendFileSync(path.join(process.cwd(), "app-debug.log"), entry);
+// Writes to the database instead of a file, since file-based logging never
+// showed anything (permission/sandboxing quirk in the hosting environment).
+async function logDebug(message: string) {
+  try {
+    await pool.query("INSERT INTO debug_log (message) VALUES (?)", [message]);
+  } catch {
+    // best-effort only
+  }
 }
 
 export async function login(
   _prevState: { error?: string } | undefined,
   formData: FormData
 ) {
+  await logDebug("login: start");
   try {
     const result = loginSchema.safeParse({
       email: formData.get("email"),
@@ -40,22 +43,36 @@ export async function login(
     });
 
     if (!result.success) {
+      await logDebug("login: validation failed");
       return { error: "Invalid email or password." };
     }
 
     const { email, password } = result.data;
+    await logDebug("login: looking up staff");
     const staff = await findStaffByEmail(email);
+    await logDebug(`login: staff found=${Boolean(staff)}`);
 
-    if (!staff || !(await verifyPassword(password, staff.password_hash))) {
+    if (!staff) {
       return { error: "Invalid email or password." };
     }
 
+    await logDebug("login: verifying password");
+    const passwordOk = await verifyPassword(password, staff.password_hash);
+    await logDebug(`login: password ok=${passwordOk}`);
+
+    if (!passwordOk) {
+      return { error: "Invalid email or password." };
+    }
+
+    await logDebug("login: creating session");
     const { token, expiresAt } = await createSession(staff.id);
+    await logDebug("login: session created, setting cookie");
     const cookieStore = await cookies();
     cookieStore.set(SESSION_COOKIE_NAME, token, {
       ...sessionCookieOptions,
       expires: expiresAt,
     });
+    await logDebug("login: cookie set, about to redirect");
   } catch (err) {
     // redirect() throws internally with a NEXT_REDIRECT digest — let it pass through untouched.
     if (
@@ -67,7 +84,9 @@ export async function login(
     ) {
       throw err;
     }
-    logDebug("login", err);
+    await logDebug(
+      `login: caught error: ${err instanceof Error ? err.stack : String(err)}`
+    );
     return { error: "Something went wrong. Please try again." };
   }
 

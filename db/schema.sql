@@ -29,3 +29,11 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   used_at      DATETIME NULL,
   FOREIGN KEY (staff_id) REFERENCES staff(id) ON DELETE CASCADE
 );
+
+-- TEMPORARY: used only to debug a production login crash that never showed
+-- up in any file-based log. Safe to drop once the login issue is resolved.
+CREATE TABLE IF NOT EXISTS debug_log (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  message    TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
