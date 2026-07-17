@@ -1,6 +1,8 @@
 "use server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import fs from "fs";
+import path from "path";
 import {
   SESSION_COOKIE_NAME,
   sessionCookieOptions,
@@ -19,32 +21,55 @@ import {
   resetPasswordSchema,
 } from "@/lib/validation";
 
+// TEMPORARY debug logging to diagnose a production-only login crash.
+function logDebug(label: string, err: unknown) {
+  const entry = `[${new Date().toISOString()}] ${label}: ${
+    err instanceof Error ? err.stack : String(err)
+  }\n`;
+  fs.appendFileSync(path.join(process.cwd(), "app-debug.log"), entry);
+}
+
 export async function login(
   _prevState: { error?: string } | undefined,
   formData: FormData
 ) {
-  const result = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+  try {
+    const result = loginSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
 
-  if (!result.success) {
-    return { error: "Invalid email or password." };
+    if (!result.success) {
+      return { error: "Invalid email or password." };
+    }
+
+    const { email, password } = result.data;
+    const staff = await findStaffByEmail(email);
+
+    if (!staff || !(await verifyPassword(password, staff.password_hash))) {
+      return { error: "Invalid email or password." };
+    }
+
+    const { token, expiresAt } = await createSession(staff.id);
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
+      ...sessionCookieOptions,
+      expires: expiresAt,
+    });
+  } catch (err) {
+    // redirect() throws internally with a NEXT_REDIRECT digest — let it pass through untouched.
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      typeof (err as { digest?: unknown }).digest === "string" &&
+      (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+    ) {
+      throw err;
+    }
+    logDebug("login", err);
+    return { error: "Something went wrong. Please try again." };
   }
-
-  const { email, password } = result.data;
-  const staff = await findStaffByEmail(email);
-
-  if (!staff || !(await verifyPassword(password, staff.password_hash))) {
-    return { error: "Invalid email or password." };
-  }
-
-  const { token, expiresAt } = await createSession(staff.id);
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
-    ...sessionCookieOptions,
-    expires: expiresAt,
-  });
 
   redirect("/admin");
 }
