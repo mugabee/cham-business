@@ -21,6 +21,16 @@ const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   createServer((req, res) => {
+    fs.appendFileSync(
+      logFile,
+      `[${new Date().toISOString()}] incoming ${req.method} ${req.url}\n`
+    );
+    res.on("finish", () => {
+      fs.appendFileSync(
+        logFile,
+        `[${new Date().toISOString()}] finished ${req.method} ${req.url} -> ${res.statusCode}\n`
+      );
+    });
     handle(req, res).catch((err) => {
       logError(`request ${req.method} ${req.url}`, err);
       res.statusCode = 500;
