@@ -25,7 +25,11 @@ type StaffRow = RowDataPacket & {
 };
 
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 12);
+  // Cost factor kept low deliberately -- bcryptjs is pure JS (no native
+  // bindings), and this runs on CPU-capped shared hosting (CloudLinux LVE)
+  // where a higher cost factor was enough to hit the account's CPU limit
+  // and kill the process mid-request during login.
+  return bcrypt.hash(password, 10);
 }
 
 export async function verifyPassword(password: string, hash: string) {
