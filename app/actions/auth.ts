@@ -108,7 +108,9 @@ export async function login(
       process.env.DB_PASSWORD?.length ?? 0
     }`;
     const errMessage = err instanceof Error ? err.message : String(err);
-    return { error: `DEBUG: ${errMessage} | ${envSummary}` };
+    return {
+      error: `DEBUG: ${errMessage} | ${envSummary} | uptime=${process.uptime().toFixed(0)}s pid=${process.pid}`,
+    };
   }
 
   redirect("/admin");
