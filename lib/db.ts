@@ -1,4 +1,16 @@
+import path from "path";
 import mysql from "mysql2/promise";
+
+// Next.js runs request/action handling in worker processes that don't
+// inherit env vars loaded by server.js's top-level code, so load the file
+// again here, at the actual point of use, in whatever worker this runs in.
+if (!process.env.DB_HOST) {
+  try {
+    process.loadEnvFile(path.join(process.cwd(), ".env.local"));
+  } catch {
+    // Fine if the file doesn't exist (e.g. env vars provided another way).
+  }
+}
 
 // Cached on globalThis so Next.js dev hot-reload doesn't open a new pool every time.
 const globalForDb = globalThis as unknown as { pool?: mysql.Pool };

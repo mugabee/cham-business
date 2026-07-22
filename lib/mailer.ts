@@ -1,5 +1,16 @@
 import "server-only";
+import path from "path";
 import nodemailer from "nodemailer";
+
+// See lib/db.ts for why this is needed here too -- Next.js's request/action
+// worker processes don't inherit env vars loaded by server.js at startup.
+if (!process.env.SMTP_HOST) {
+  try {
+    process.loadEnvFile(path.join(process.cwd(), ".env.local"));
+  } catch {
+    // Fine if the file doesn't exist (e.g. env vars provided another way).
+  }
+}
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
