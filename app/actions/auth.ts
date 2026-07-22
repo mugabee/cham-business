@@ -100,7 +100,15 @@ export async function login(
     await logDebug(
       `login: caught error: ${err instanceof Error ? err.stack : String(err)}`
     );
-    return { error: "Something went wrong. Please try again." };
+    // TEMPORARY: surface the actual error + env presence directly in the
+    // response, since no logging channel (file or DB) has shown anything.
+    const envSummary = `DB_HOST=${process.env.DB_HOST ?? "unset"} DB_NAME=${
+      process.env.DB_NAME ?? "unset"
+    } DB_USER=${process.env.DB_USER ?? "unset"} DB_PASSWORD_LEN=${
+      process.env.DB_PASSWORD?.length ?? 0
+    }`;
+    const errMessage = err instanceof Error ? err.message : String(err);
+    return { error: `DEBUG: ${errMessage} | ${envSummary}` };
   }
 
   redirect("/admin");
