@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { pool } from "@/lib/db";
+import mysql from "mysql2/promise";
 import {
   SESSION_COOKIE_NAME,
   sessionCookieOptions,
@@ -21,13 +21,26 @@ import {
 } from "@/lib/validation";
 
 // TEMPORARY debug logging to diagnose a production-only login crash.
-// Writes to the database instead of a file, since file-based logging never
-// showed anything (permission/sandboxing quirk in the hosting environment).
+// Writes to the database using a fresh standalone connection (same approach
+// as scripts/seed-admin.mjs, which is confirmed working) rather than the
+// shared pool, to rule out any stale/cached pool holding bad credentials.
 async function logDebug(message: string) {
   try {
-    await pool.query("INSERT INTO debug_log (message) VALUES (?)", [message]);
-  } catch {
-    // best-effort only
+    const connection = await mysql.createConnection({
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT ?? 3306),
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+    });
+    await connection.query("INSERT INTO debug_log (message) VALUES (?)", [
+      message,
+    ]);
+    await connection.end();
+  } catch (err) {
+    // Last resort: surface the logging failure itself via console so it at
+    // least has a chance of appearing somewhere (Passenger stdout capture).
+    console.error("logDebug failed:", err);
   }
 }
 
