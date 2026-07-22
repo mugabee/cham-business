@@ -2,31 +2,21 @@
 // expects a startup file that listens on the port Passenger assigns via
 // process.env.PORT — `next start` alone doesn't fit that model.
 const { createServer } = require("http");
-const fs = require("fs");
 const path = require("path");
 
 // Using next({ dev: false }) programmatically (instead of the `next start`
 // CLI) skips Next's own automatic .env.local loading, and cPanel/LiteSpeed's
-// .htaccess SetEnv block isn't reaching this process's env either -- so load
-// it ourselves before requiring next.
-global.__envLoadStatus = "not attempted";
+// .htaccess SetEnv block doesn't reach this process either -- so load it
+// ourselves. (lib/db.ts and lib/mailer.ts also do this at their point of use,
+// since Next runs request/action handling in separate worker processes that
+// don't inherit whatever this top-level code sets.)
 try {
   process.loadEnvFile(path.join(__dirname, ".env.local"));
-  global.__envLoadStatus = `ok, __dirname=${__dirname}`;
-} catch (err) {
-  global.__envLoadStatus = `FAILED: ${err && err.message ? err.message : err}, __dirname=${__dirname}`;
+} catch {
+  // Fine if the file doesn't exist (e.g. env vars provided another way).
 }
 
 const next = require("next");
-
-const logFile = path.join(__dirname, "app-debug.log");
-function logError(label, err) {
-  const entry = `[${new Date().toISOString()}] ${label}: ${err && err.stack ? err.stack : err}\n`;
-  fs.appendFileSync(logFile, entry);
-}
-
-process.on("uncaughtException", (err) => logError("uncaughtException", err));
-process.on("unhandledRejection", (err) => logError("unhandledRejection", err));
 
 const port = process.env.PORT || 3000;
 const app = next({ dev: false });
@@ -34,21 +24,7 @@ const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   createServer((req, res) => {
-    fs.appendFileSync(
-      logFile,
-      `[${new Date().toISOString()}] incoming ${req.method} ${req.url}\n`
-    );
-    res.on("finish", () => {
-      fs.appendFileSync(
-        logFile,
-        `[${new Date().toISOString()}] finished ${req.method} ${req.url} -> ${res.statusCode}\n`
-      );
-    });
-    handle(req, res).catch((err) => {
-      logError(`request ${req.method} ${req.url}`, err);
-      res.statusCode = 500;
-      res.end("Internal Server Error");
-    });
+    handle(req, res);
   }).listen(port, () => {
     console.log(`Ready on port ${port}`);
   });

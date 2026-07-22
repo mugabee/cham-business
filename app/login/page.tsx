@@ -12,7 +12,6 @@ export default function LoginPage() {
           Staff login
         </h1>
         <p className="text-sm text-gray-500 mb-6">Cham Business Ltd — admin</p>
-        <p className="text-xs text-red-500 mb-2">BUILD-MARKER-Q7ZP44-v2</p>
 
         <form action={action} className="space-y-4">
           <div>
