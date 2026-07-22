@@ -4,6 +4,17 @@
 const { createServer } = require("http");
 const fs = require("fs");
 const path = require("path");
+
+// Using next({ dev: false }) programmatically (instead of the `next start`
+// CLI) skips Next's own automatic .env.local loading, and cPanel/LiteSpeed's
+// .htaccess SetEnv block isn't reaching this process's env either -- so load
+// it ourselves before requiring next.
+try {
+  process.loadEnvFile(path.join(__dirname, ".env.local"));
+} catch {
+  // Fine if the file doesn't exist (e.g. env vars provided another way).
+}
+
 const next = require("next");
 
 const logFile = path.join(__dirname, "app-debug.log");
