@@ -9,10 +9,12 @@ const path = require("path");
 // CLI) skips Next's own automatic .env.local loading, and cPanel/LiteSpeed's
 // .htaccess SetEnv block isn't reaching this process's env either -- so load
 // it ourselves before requiring next.
+global.__envLoadStatus = "not attempted";
 try {
   process.loadEnvFile(path.join(__dirname, ".env.local"));
-} catch {
-  // Fine if the file doesn't exist (e.g. env vars provided another way).
+  global.__envLoadStatus = `ok, __dirname=${__dirname}`;
+} catch (err) {
+  global.__envLoadStatus = `FAILED: ${err && err.message ? err.message : err}, __dirname=${__dirname}`;
 }
 
 const next = require("next");
