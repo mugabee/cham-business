@@ -30,3 +30,26 @@ export const pool =
 if (process.env.NODE_ENV !== "production") {
   globalForDb.pool = pool;
 }
+
+/**
+ * Runs `fn` inside a transaction on a dedicated connection, committing on
+ * success and rolling back on any thrown error. Use whenever a mutation
+ * touches more than one table and must be all-or-nothing (loan approval,
+ * payment allocation).
+ */
+export async function withTransaction<T>(
+  fn: (conn: mysql.PoolConnection) => Promise<T>
+): Promise<T> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await fn(conn);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}

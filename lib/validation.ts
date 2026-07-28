@@ -45,3 +45,46 @@ export const resetPasswordSchema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+// Admin back-office schemas.
+
+export const approveApplicationSchema = z.object({
+  applicationId: z.coerce.number().int().positive(),
+  principal: z.coerce.number().int().positive("Enter the approved amount"),
+  termMonths: z.coerce.number().int().min(1).max(60, "Term must be 1-60 months"),
+  disbursedAt: z.string().min(1, "Pick a disbursement date"),
+  nationalId: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const rejectApplicationSchema = z.object({
+  applicationId: z.coerce.number().int().positive(),
+  notes: z.string().min(1, "Add a short reason for the applicant's file"),
+});
+
+export const borrowerSchema = z.object({
+  fullName: z.string().min(2, "Enter the borrower's full name"),
+  phone: z.string().min(10, "Enter a valid phone number"),
+  email: z.string().email("Enter a valid email").or(z.literal("")).optional(),
+  nationalId: z.string().optional(),
+  monthlyIncome: z.coerce.number().int().nonnegative(),
+  address: z.string().optional(),
+});
+
+export const createLoanSchema = z.object({
+  borrowerId: z.coerce.number().int().positive(),
+  principal: z.coerce.number().int().positive("Enter the loan amount"),
+  termMonths: z.coerce.number().int().min(1).max(60, "Term must be 1-60 months"),
+  disbursedAt: z.string().min(1, "Pick a disbursement date"),
+});
+
+export const recordPaymentSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  amount: z.coerce.number().int().positive("Enter the amount paid"),
+  method: z.enum(["mtn", "airtel", "bank"], {
+    message: "Choose a payment method",
+  }),
+  reference: z.string().optional(),
+  notes: z.string().optional(),
+});
