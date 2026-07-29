@@ -13,11 +13,22 @@ export const applicationSchema = z.object({
     .string()
     .min(1, "Please enter an amount")
     .regex(/^[0-9,]+$/, "Amount can only contain numbers"),
+  purposeCategory: z.string().min(1, "Please choose what the loan is for"),
   purpose: z.string().min(5, "Tell us briefly what it's for"),
   monthlyIncome: z
     .string()
     .min(1, "Please enter your monthly income")
     .regex(/^[0-9,]+$/, "Income can only contain numbers"),
+  desiredTermMonths: z
+    .string()
+    .min(1, "Please tell us how many months")
+    .regex(/^[0-9]+$/, "Months must be a number"),
+  occupation: z.string().min(1, "Please tell us your occupation"),
+  maritalStatus: z.enum(["single", "married", "divorced"], {
+    message: "Please choose your marital status",
+  }),
+  workAddress: z.string().min(1, "Please tell us where you work from"),
+  collateralAddress: z.string().optional().or(z.literal("")),
   consent: z.literal(true, {
     message: "Please agree so we can process your application",
   }),

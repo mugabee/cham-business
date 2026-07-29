@@ -50,27 +50,47 @@ CREATE INDEX idx_borrowers_full_name ON borrowers(full_name);
 CREATE INDEX idx_borrowers_archived_at ON borrowers(archived_at);
 
 CREATE TABLE IF NOT EXISTS applications (
-  id                INT AUTO_INCREMENT PRIMARY KEY,
-  borrower_id       INT NULL,
-  full_name         VARCHAR(255) NOT NULL,
-  phone             VARCHAR(30)  NOT NULL,
-  email             VARCHAR(255) NULL,
-  loan_type         VARCHAR(100) NOT NULL,
-  amount_requested  INT UNSIGNED NOT NULL,
-  purpose           VARCHAR(1000) NOT NULL,
-  monthly_income    INT UNSIGNED NOT NULL,
-  status            ENUM('new','reviewing','approved','rejected') NOT NULL DEFAULT 'new',
-  submitted_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  reviewed_by       INT NULL,
-  reviewed_at       DATETIME NULL,
-  notes             VARCHAR(2000) NULL,
-  archived_at       DATETIME NULL,
+  id                    INT AUTO_INCREMENT PRIMARY KEY,
+  borrower_id           INT NULL,
+  full_name             VARCHAR(255) NOT NULL,
+  phone                 VARCHAR(30)  NOT NULL,
+  email                 VARCHAR(255) NULL,
+  loan_type             VARCHAR(100) NOT NULL,
+  amount_requested      INT UNSIGNED NOT NULL,
+  purpose_category      VARCHAR(100) NULL,
+  purpose               VARCHAR(1000) NOT NULL,
+  monthly_income        INT UNSIGNED NOT NULL,
+  desired_term_months   SMALLINT UNSIGNED NULL,
+  occupation            VARCHAR(255) NULL,
+  marital_status        ENUM('single','married','divorced') NULL,
+  work_address          VARCHAR(500) NULL,
+  collateral_address     VARCHAR(500) NULL,
+  fee_amount            INT UNSIGNED NULL,
+  status                ENUM('new','reviewing','approved','rejected') NOT NULL DEFAULT 'new',
+  submitted_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  reviewed_by           INT NULL,
+  reviewed_at           DATETIME NULL,
+  notes                 VARCHAR(2000) NULL,
+  archived_at           DATETIME NULL,
   FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE SET NULL,
   FOREIGN KEY (reviewed_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_applications_status ON applications(status);
 CREATE INDEX idx_applications_submitted_at ON applications(submitted_at);
 CREATE INDEX idx_applications_archived_at ON applications(archived_at);
+
+CREATE TABLE IF NOT EXISTS application_documents (
+  id                 INT AUTO_INCREMENT PRIMARY KEY,
+  application_id     INT NOT NULL,
+  document_type      VARCHAR(50) NOT NULL,
+  original_filename  VARCHAR(255) NOT NULL,
+  stored_filename    VARCHAR(255) NOT NULL,
+  mime_type          VARCHAR(100) NOT NULL,
+  file_size          INT UNSIGNED NOT NULL,
+  uploaded_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE INDEX idx_application_documents_application_id ON application_documents(application_id);
 
 CREATE TABLE IF NOT EXISTS loans (
   id                     INT AUTO_INCREMENT PRIMARY KEY,

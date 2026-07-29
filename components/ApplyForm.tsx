@@ -2,35 +2,54 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { applicationSchema, type ApplicationData } from "@/lib/validation";
 import { loanProducts } from "@/lib/site";
+import { visibleDocumentTypes, calculateApplicationFee, PURPOSE_CATEGORIES } from "@/lib/documents";
 
 export default function ApplyForm() {
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<ApplicationData>({
     resolver: zodResolver(applicationSchema),
   });
 
-  async function onSubmit(data: ApplicationData) {
+  const loanType = watch("loanType");
+  const maritalStatus = watch("maritalStatus");
+  const amount = watch("amount");
+
+  const numericAmount = Number((amount || "").replace(/,/g, ""));
+  const fee = calculateApplicationFee(numericAmount);
+  const documents = visibleDocumentTypes(loanType || "", maritalStatus);
+
+  async function onSubmit(_data: ApplicationData, event?: React.BaseSyntheticEvent) {
     setServerError("");
     try {
+      const form = (event?.target as HTMLFormElement) ?? formRef.current;
+      if (!form) throw new Error("Form not found");
+      const formData = new FormData(form);
+
       const res = await fetch("/api/apply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: formData,
       });
-      if (!res.ok) throw new Error("Something went wrong");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Something went wrong");
+      }
       setSubmitted(true);
-    } catch {
+    } catch (err) {
       setServerError(
-        "We couldn't send your application just now. Please try again, or call us."
+        err instanceof Error && err.message !== "Something went wrong"
+          ? err.message
+          : "We couldn't send your application just now. Please try again, or call us."
       );
     }
   }
@@ -48,7 +67,8 @@ export default function ApplyForm() {
         </h2>
         <p className="mx-auto mt-3 max-w-md text-[var(--color-ink-soft)]">
           Thank you. Our team will review your details and get back to you within
-          24 hours, usually sooner. We may call to confirm a few things.
+          24 hours, usually sooner. We may call to confirm a few things, including
+          payment of the application fee shown above.
         </p>
       </div>
     );
@@ -58,9 +78,16 @@ export default function ApplyForm() {
     "w-full rounded-xl border border-[var(--color-line)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-brand)]";
   const label = "block text-sm font-semibold text-[var(--color-ink)]";
   const errText = "mt-1 text-sm text-[var(--color-accent-deep)]";
+  const fileField = `${field} file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--color-brand-wash)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--color-brand)]`;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-5"
+      noValidate
+      encType="multipart/form-data"
+    >
       <div>
         <label htmlFor="fullName" className={label}>Full name</label>
         <input id="fullName" {...register("fullName")} className={`${field} mt-1.5`} placeholder="As it appears on your ID" />
@@ -98,25 +125,110 @@ export default function ApplyForm() {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="monthlyIncome" className={label}>Monthly income (RWF)</label>
-        <input id="monthlyIncome" {...register("monthlyIncome")} className={`${field} mt-1.5`} placeholder="e.g. 350,000" />
-        {errors.monthlyIncome && <p className={errText}>{errors.monthlyIncome.message}</p>}
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="monthlyIncome" className={label}>Monthly income (RWF)</label>
+          <input id="monthlyIncome" {...register("monthlyIncome")} className={`${field} mt-1.5`} placeholder="e.g. 350,000" />
+          {errors.monthlyIncome && <p className={errText}>{errors.monthlyIncome.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="desiredTermMonths" className={label}>For how long will the loan be repaid? (months)</label>
+          <input id="desiredTermMonths" {...register("desiredTermMonths")} className={`${field} mt-1.5`} placeholder="e.g. 6" />
+          {errors.desiredTermMonths && <p className={errText}>{errors.desiredTermMonths.message}</p>}
+        </div>
       </div>
 
       <div>
-        <label htmlFor="purpose" className={label}>What is the loan for?</label>
+        <label htmlFor="purposeCategory" className={label}>What will the loan be used for?</label>
+        <select id="purposeCategory" {...register("purposeCategory")} className={`${field} mt-1.5`} defaultValue="">
+          <option value="" disabled>Choose one</option>
+          {PURPOSE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        {errors.purposeCategory && <p className={errText}>{errors.purposeCategory.message}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="purpose" className={label}>
+          Tell us more (or if you chose &ldquo;Other&rdquo; above)
+        </label>
         <textarea id="purpose" {...register("purpose")} rows={3} className={`${field} mt-1.5 resize-none`} placeholder="A sentence or two is fine" />
         {errors.purpose && <p className={errText}>{errors.purpose.message}</p>}
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="occupation" className={label}>What do you do? (occupation / job)</label>
+          <input id="occupation" {...register("occupation")} className={`${field} mt-1.5`} placeholder="e.g. Market trader" />
+          {errors.occupation && <p className={errText}>{errors.occupation.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="maritalStatus" className={label}>Marital status</label>
+          <select id="maritalStatus" {...register("maritalStatus")} className={`${field} mt-1.5`} defaultValue="">
+            <option value="" disabled>Choose one</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="divorced">Divorced</option>
+          </select>
+          {errors.maritalStatus && <p className={errText}>{errors.maritalStatus.message}</p>}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="workAddress" className={label}>Address where you work from</label>
+        <input id="workAddress" {...register("workAddress")} className={`${field} mt-1.5`} placeholder="e.g. Kicukiro Modern Market, Kigali" />
+        {errors.workAddress && <p className={errText}>{errors.workAddress.message}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="collateralAddress" className={label}>
+          Collateral asset location/address <span className="font-normal text-[var(--color-ink-soft)]">(optional, if you're offering collateral)</span>
+        </label>
+        <input id="collateralAddress" {...register("collateralAddress")} className={`${field} mt-1.5`} placeholder="Where is the collateral located?" />
+        {errors.collateralAddress && <p className={errText}>{errors.collateralAddress.message}</p>}
+      </div>
+
+      <div className="rounded-xl border border-[var(--color-line)] p-4">
+        <p className="text-sm font-semibold text-[var(--color-ink)]">Application fee</p>
+        <p className="mt-1 text-2xl font-bold text-[var(--color-brand)]">
+          RWF {fee.toLocaleString()}
+        </p>
+        <p className="mt-1 text-xs text-[var(--color-ink-soft)]">
+          1% of the requested amount + 18% VAT, minimum RWF 30,000. Our team will
+          contact you with payment instructions before your application is
+          processed.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <p className={label}>Supporting documents</p>
+        {documents.map((doc) => (
+          <div key={doc.key}>
+            <label htmlFor={doc.key} className="block text-sm text-[var(--color-ink)]">
+              {doc.label}
+              {!doc.required && <span className="font-normal text-[var(--color-ink-soft)]"> (optional)</span>}
+            </label>
+            <input
+              id={doc.key}
+              name={doc.key}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              required={doc.required}
+              className={`${fileField} mt-1.5`}
+            />
+          </div>
+        ))}
       </div>
 
       <div className="rounded-xl bg-[var(--color-paper-deep)] p-4">
         <label className="flex gap-3 text-sm text-[var(--color-ink-soft)]">
           <input type="checkbox" {...register("consent")} className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-brand)]" />
           <span>
-            I agree that Cham Business Ltd may use the information above to assess
-            and contact me about my application. I understand this is an enquiry,
-            not a guarantee of a loan.
+            I agree to Cham Business Ltd&apos;s terms and conditions, understand
+            the application fee shown above, and agree that my information may
+            be used to assess and contact me about my application. I understand
+            this is an enquiry, not a guarantee of a loan.
           </span>
         </label>
         {errors.consent && <p className={errText}>{errors.consent.message}</p>}

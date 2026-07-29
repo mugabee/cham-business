@@ -23,6 +23,9 @@
 # Phusion Passenger (cPanel Node.js App) restart-trigger folder
 /tmp
 
+# uploaded applicant documents (stored on the server, not in git)
+/uploads
+
 # misc
 .DS_Store
 *.pem

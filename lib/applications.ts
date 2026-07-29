@@ -5,6 +5,8 @@ import { createBorrower } from "@/lib/borrowers";
 import { createLoan } from "@/lib/loans";
 import { logAudit } from "@/lib/audit";
 import type { ApplicationData } from "@/lib/validation";
+import { calculateApplicationFee, type DocumentKey } from "@/lib/documents";
+import type { SavedFile } from "@/lib/uploads";
 
 export type ApplicationSummary = {
   id: number;
@@ -17,36 +19,83 @@ export type ApplicationSummary = {
   archivedAt: Date | null;
 };
 
+export type ApplicationDocument = {
+  id: number;
+  documentType: string;
+  originalFilename: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedAt: Date;
+};
+
 export type ApplicationDetail = ApplicationSummary & {
   email: string | null;
+  purposeCategory: string | null;
   purpose: string;
   monthlyIncome: number;
+  desiredTermMonths: number | null;
+  occupation: string | null;
+  maritalStatus: "single" | "married" | "divorced" | null;
+  workAddress: string | null;
+  collateralAddress: string | null;
+  feeAmount: number | null;
   borrowerId: number | null;
   reviewedByEmail: string | null;
   reviewedAt: Date | null;
   notes: string | null;
+  documents: ApplicationDocument[];
 };
 
 export async function createApplicationFromPublicForm(
-  data: ApplicationData
+  data: ApplicationData,
+  documents: Array<SavedFile & { documentType: DocumentKey }>
 ): Promise<void> {
   const amount = Number(data.amount.replace(/,/g, ""));
   const monthlyIncome = Number(data.monthlyIncome.replace(/,/g, ""));
+  const feeAmount = calculateApplicationFee(amount);
 
-  await pool.query(
-    `INSERT INTO applications
-       (full_name, phone, email, loan_type, amount_requested, purpose, monthly_income, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'new')`,
-    [
-      data.fullName,
-      data.phone,
-      data.email || null,
-      data.loanType,
-      amount,
-      data.purpose,
-      monthlyIncome,
-    ]
-  );
+  await withTransaction(async (conn) => {
+    const [result] = await conn.query(
+      `INSERT INTO applications
+         (full_name, phone, email, loan_type, amount_requested, purpose_category, purpose,
+          monthly_income, desired_term_months, occupation, marital_status, work_address,
+          collateral_address, fee_amount, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')`,
+      [
+        data.fullName,
+        data.phone,
+        data.email || null,
+        data.loanType,
+        amount,
+        data.purposeCategory,
+        data.purpose,
+        monthlyIncome,
+        Number(data.desiredTermMonths),
+        data.occupation,
+        data.maritalStatus,
+        data.workAddress,
+        data.collateralAddress || null,
+        feeAmount,
+      ]
+    );
+    const applicationId = (result as { insertId: number }).insertId;
+
+    for (const doc of documents) {
+      await conn.query(
+        `INSERT INTO application_documents
+           (application_id, document_type, original_filename, stored_filename, mime_type, file_size)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          applicationId,
+          doc.documentType,
+          doc.originalFilename,
+          doc.storedFilename,
+          doc.mimeType,
+          doc.fileSize,
+        ]
+      );
+    }
+  });
 }
 
 export async function listApplications(opts: {
@@ -87,8 +136,11 @@ export async function getApplicationById(
 ): Promise<ApplicationDetail | null> {
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT applications.id, applications.full_name, applications.phone, applications.email,
-            applications.loan_type, applications.amount_requested, applications.purpose,
-            applications.monthly_income, applications.status, applications.submitted_at,
+            applications.loan_type, applications.amount_requested, applications.purpose_category,
+            applications.purpose, applications.monthly_income, applications.desired_term_months,
+            applications.occupation, applications.marital_status, applications.work_address,
+            applications.collateral_address, applications.fee_amount,
+            applications.status, applications.submitted_at,
             applications.borrower_id, applications.reviewed_at, applications.notes,
             applications.archived_at, staff.email AS reviewed_by_email
      FROM applications
@@ -100,6 +152,14 @@ export async function getApplicationById(
   const row = rows[0];
   if (!row) return null;
 
+  const [documentRows] = await pool.query<RowDataPacket[]>(
+    `SELECT id, document_type, original_filename, mime_type, file_size, uploaded_at
+     FROM application_documents
+     WHERE application_id = ?
+     ORDER BY id ASC`,
+    [id]
+  );
+
   return {
     id: row.id,
     fullName: row.full_name,
@@ -107,8 +167,15 @@ export async function getApplicationById(
     email: row.email,
     loanType: row.loan_type,
     amountRequested: row.amount_requested,
+    purposeCategory: row.purpose_category,
     purpose: row.purpose,
     monthlyIncome: row.monthly_income,
+    desiredTermMonths: row.desired_term_months,
+    occupation: row.occupation,
+    maritalStatus: row.marital_status,
+    workAddress: row.work_address,
+    collateralAddress: row.collateral_address,
+    feeAmount: row.fee_amount,
     status: row.status,
     submittedAt: row.submitted_at,
     borrowerId: row.borrower_id,
@@ -116,6 +183,14 @@ export async function getApplicationById(
     reviewedAt: row.reviewed_at,
     notes: row.notes,
     archivedAt: row.archived_at,
+    documents: documentRows.map((d) => ({
+      id: d.id,
+      documentType: d.document_type,
+      originalFilename: d.original_filename,
+      mimeType: d.mime_type,
+      fileSize: d.file_size,
+      uploadedAt: d.uploaded_at,
+    })),
   };
 }
 
@@ -210,6 +285,29 @@ export async function rejectApplication(params: {
       detail: { notes: params.notes },
     });
   });
+}
+
+export async function getApplicationDocumentById(id: number): Promise<{
+  id: number;
+  documentType: string;
+  originalFilename: string;
+  storedFilename: string;
+  mimeType: string;
+} | null> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT id, document_type, original_filename, stored_filename, mime_type
+     FROM application_documents WHERE id = ? LIMIT 1`,
+    [id]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    documentType: row.document_type,
+    originalFilename: row.original_filename,
+    storedFilename: row.stored_filename,
+    mimeType: row.mime_type,
+  };
 }
 
 export async function updateApplication(

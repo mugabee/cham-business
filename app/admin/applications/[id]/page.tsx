@@ -84,11 +84,39 @@ export default async function ApplicationDetailPage({
           <p className="text-gray-900">{formatRWF(application.monthlyIncome)}</p>
         </div>
         <div>
+          <p className="text-gray-500">Desired repayment period</p>
+          <p className="text-gray-900">
+            {application.desiredTermMonths ? `${application.desiredTermMonths} months` : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-gray-500">Occupation</p>
+          <p className="text-gray-900">{application.occupation || "—"}</p>
+        </div>
+        <div>
+          <p className="text-gray-500">Marital status</p>
+          <p className="text-gray-900 capitalize">{application.maritalStatus || "—"}</p>
+        </div>
+        <div>
+          <p className="text-gray-500">Works from</p>
+          <p className="text-gray-900">{application.workAddress || "—"}</p>
+        </div>
+        <div>
+          <p className="text-gray-500">Collateral location</p>
+          <p className="text-gray-900">{application.collateralAddress || "—"}</p>
+        </div>
+        <div>
+          <p className="text-gray-500">Application fee</p>
+          <p className="text-gray-900">
+            {application.feeAmount ? formatRWF(application.feeAmount) : "—"}
+          </p>
+        </div>
+        <div>
           <p className="text-gray-500">Submitted</p>
           <p className="text-gray-900">{formatDate(application.submittedAt)}</p>
         </div>
         <div className="col-span-2">
-          <p className="text-gray-500">Purpose</p>
+          <p className="text-gray-500">Loan purpose{application.purposeCategory ? ` — ${application.purposeCategory}` : ""}</p>
           <p className="text-gray-900">{application.purpose}</p>
         </div>
         {application.borrowerId && (
@@ -115,6 +143,27 @@ export default async function ApplicationDetailPage({
           </div>
         )}
       </div>
+
+      {application.documents.length > 0 && (
+        <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5">
+          <h2 className="font-semibold text-gray-900 mb-3">Supporting documents</h2>
+          <ul className="divide-y divide-gray-100 text-sm">
+            {application.documents.map((doc) => (
+              <li key={doc.id} className="py-2 flex items-center justify-between">
+                <span className="text-gray-700">{doc.originalFilename}</span>
+                <a
+                  href={`/api/admin/documents/${doc.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-700 hover:underline font-medium"
+                >
+                  View →
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {isPending && (
         <div className="mt-6">
