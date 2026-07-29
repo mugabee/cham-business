@@ -4,6 +4,9 @@ import { verifySession } from "@/lib/dal";
 import { getLoanById } from "@/lib/loans";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
+import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import { deleteLoanAction } from "@/app/actions/loans";
+import { deletePaymentAction } from "@/app/actions/payments";
 
 const loanStatusTone = {
   active: "success",
@@ -52,6 +55,7 @@ export default async function LoanDetailPage({
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge label={loan.status} tone={loanStatusTone[loan.status]} />
+          {loan.archivedAt && <StatusBadge label="archived" tone="neutral" />}
           {loan.status === "active" && (
             <Link
               href={`/admin/payments/new?loanId=${loan.id}`}
@@ -61,6 +65,22 @@ export default async function LoanDetailPage({
             </Link>
           )}
         </div>
+      </div>
+
+      <div className="mt-3">
+        <ArchiveDeleteControls
+          entity="loan"
+          id={loan.id}
+          archived={Boolean(loan.archivedAt)}
+          confirmMessage={`Permanently delete this loan and all ${loan.payments.length} payment(s) recorded against it (totaling ${formatRWF(
+            loan.payments.reduce((sum, p) => sum + p.amount, 0)
+          )})? This cannot be undone.`}
+          deleteAction={deleteLoanAction}
+          deleteDisabled={loan.status !== "written_off"}
+          deleteDisabledReason={
+            loan.status !== "written_off" ? "Write off this loan first to enable deletion." : undefined
+          }
+        />
       </div>
 
       <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
@@ -116,7 +136,7 @@ export default async function LoanDetailPage({
       </div>
 
       <h2 className="text-lg font-semibold text-gray-900 mt-8 mb-3">Payment history</h2>
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr>
@@ -125,6 +145,7 @@ export default async function LoanDetailPage({
               <th className="px-4 py-2 font-medium">Method</th>
               <th className="px-4 py-2 font-medium">Reference</th>
               <th className="px-4 py-2 font-medium">Recorded by</th>
+              <th className="px-4 py-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -134,12 +155,29 @@ export default async function LoanDetailPage({
                 <td className="px-4 py-2 text-gray-700">{formatRWF(p.amount)}</td>
                 <td className="px-4 py-2 text-gray-700">{methodLabel[p.method]}</td>
                 <td className="px-4 py-2 text-gray-700">{p.reference || "—"}</td>
-                <td className="px-4 py-2 text-gray-500">{p.recordedByEmail || "—"}</td>
+                <td className="px-4 py-2 text-gray-500">
+                  {p.recordedByEmail || "—"}
+                  {p.archivedAt && (
+                    <span className="ml-2">
+                      <StatusBadge label="archived" tone="neutral" />
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-2">
+                  <ArchiveDeleteControls
+                    entity="payment"
+                    id={p.id}
+                    archived={Boolean(p.archivedAt)}
+                    confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
+                    deleteAction={deletePaymentAction}
+                    extraFields={{ loanId: loan.id }}
+                  />
+                </td>
               </tr>
             ))}
             {loan.payments.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
                   No payments recorded yet.
                 </td>
               </tr>

@@ -4,6 +4,8 @@ import { verifySession } from "@/lib/dal";
 import { getBorrowerById } from "@/lib/borrowers";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
+import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import { deleteBorrowerAction } from "@/app/actions/borrowers";
 
 const loanStatusTone = {
   active: "success",
@@ -29,13 +31,32 @@ export default async function BorrowerDetailPage({
       </Link>
 
       <div className="mt-3 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">{borrower.fullName}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold text-gray-900">{borrower.fullName}</h1>
+          {borrower.archivedAt && <StatusBadge label="archived" tone="neutral" />}
+        </div>
         <Link
           href={`/admin/loans/new?borrowerId=${borrower.id}`}
           className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
         >
           + New loan
         </Link>
+      </div>
+
+      <div className="mt-3">
+        <ArchiveDeleteControls
+          entity="borrower"
+          id={borrower.id}
+          archived={Boolean(borrower.archivedAt)}
+          confirmMessage={`Permanently delete ${borrower.fullName}? This cannot be undone.`}
+          deleteAction={deleteBorrowerAction}
+          deleteDisabled={borrower.loans.length > 0}
+          deleteDisabledReason={
+            borrower.loans.length > 0
+              ? `Has ${borrower.loans.length} loan(s) -- delete those first.`
+              : undefined
+          }
+        />
       </div>
 
       <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5 grid grid-cols-2 gap-4 text-sm">

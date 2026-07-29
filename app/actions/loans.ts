@@ -1,7 +1,8 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { createLoan } from "@/lib/loans";
+import { createLoan, deleteLoan } from "@/lib/loans";
 import { logAudit } from "@/lib/audit";
 import { pool } from "@/lib/db";
 import { createLoanSchema } from "@/lib/validation";
@@ -40,4 +41,20 @@ export async function createLoanAction(
   });
 
   redirect(`/admin/loans/${loanId}`);
+}
+
+export async function deleteLoanAction(
+  _prevState: { error?: string } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+
+  const { error } = await deleteLoan(id, session.userId);
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/admin/loans");
+  redirect("/admin/loans");
 }

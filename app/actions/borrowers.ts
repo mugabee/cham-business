@@ -1,7 +1,8 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { createBorrower } from "@/lib/borrowers";
+import { createBorrower, deleteBorrower } from "@/lib/borrowers";
 import { logAudit } from "@/lib/audit";
 import { pool } from "@/lib/db";
 import { borrowerSchema } from "@/lib/validation";
@@ -39,4 +40,20 @@ export async function createBorrowerAction(
   });
 
   redirect(`/admin/borrowers/${borrowerId}`);
+}
+
+export async function deleteBorrowerAction(
+  _prevState: { error?: string } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+
+  const { error } = await deleteBorrower(id, session.userId);
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/admin/borrowers");
+  redirect("/admin/borrowers");
 }

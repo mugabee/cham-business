@@ -1,7 +1,8 @@
 import "server-only";
 import type { Pool, PoolConnection, RowDataPacket } from "mysql2/promise";
-import { pool } from "@/lib/db";
+import { pool, withTransaction } from "@/lib/db";
 import { generateSchedule } from "@/lib/loan-math";
+import { logAudit } from "@/lib/audit";
 
 export type LoanSummary = {
   id: number;
@@ -13,6 +14,7 @@ export type LoanSummary = {
   outstanding: number;
   isOverdue: boolean;
   disbursedAt: Date;
+  archivedAt: Date | null;
 };
 
 export type ScheduleRow = {
@@ -35,6 +37,7 @@ export type PaymentRow = {
   paidAt: Date;
   notes: string | null;
   recordedByEmail: string | null;
+  archivedAt: Date | null;
 };
 
 export type LoanDetail = {
@@ -46,6 +49,7 @@ export type LoanDetail = {
   termMonths: number;
   status: "active" | "paid_off" | "written_off";
   disbursedAt: Date;
+  archivedAt: Date | null;
   schedule: ScheduleRow[];
   payments: PaymentRow[];
 };
@@ -114,6 +118,7 @@ export async function createLoan(
 
 export async function listLoans(opts: {
   status?: string;
+  archived?: boolean;
 }): Promise<LoanSummary[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
@@ -121,11 +126,12 @@ export async function listLoans(opts: {
     conditions.push("loans.status = ?");
     values.push(opts.status);
   }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  conditions.push(opts.archived ? "loans.archived_at IS NOT NULL" : "loans.archived_at IS NULL");
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT loans.id, loans.borrower_id, borrowers.full_name AS borrower_name,
-            loans.principal, loans.term_months, loans.status, loans.disbursed_at,
+            loans.principal, loans.term_months, loans.status, loans.disbursed_at, loans.archived_at,
             COALESCE((
               SELECT SUM(total_due - amount_paid) FROM repayment_schedule
               WHERE repayment_schedule.loan_id = loans.id AND repayment_schedule.status <> 'paid'
@@ -153,6 +159,7 @@ export async function listLoans(opts: {
     outstanding: Number(row.outstanding),
     isOverdue: Boolean(row.is_overdue),
     disbursedAt: row.disbursed_at,
+    archivedAt: row.archived_at,
   }));
 }
 
@@ -160,7 +167,7 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
   const [loanRows] = await pool.query<RowDataPacket[]>(
     `SELECT loans.id, loans.borrower_id, borrowers.full_name AS borrower_name,
             loans.principal, loans.interest_rate_monthly, loans.term_months,
-            loans.status, loans.disbursed_at
+            loans.status, loans.disbursed_at, loans.archived_at
      FROM loans
      JOIN borrowers ON borrowers.id = loans.borrower_id
      WHERE loans.id = ?
@@ -181,7 +188,7 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
 
   const [paymentRows] = await pool.query<RowDataPacket[]>(
     `SELECT payments.id, payments.amount, payments.method, payments.reference,
-            payments.paid_at, payments.notes, staff.email AS recorded_by_email
+            payments.paid_at, payments.notes, payments.archived_at, staff.email AS recorded_by_email
      FROM payments
      LEFT JOIN staff ON staff.id = payments.recorded_by
      WHERE payments.loan_id = ?
@@ -198,6 +205,7 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
     termMonths: loan.term_months,
     status: loan.status,
     disbursedAt: loan.disbursed_at,
+    archivedAt: loan.archived_at,
     schedule: scheduleRows.map((row) => ({
       id: row.id,
       instalmentNumber: row.instalment_number,
@@ -217,6 +225,7 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
       paidAt: row.paid_at,
       notes: row.notes,
       recordedByEmail: row.recorded_by_email,
+      archivedAt: row.archived_at,
     })),
   };
 }
@@ -230,7 +239,7 @@ export async function listActiveLoansForPicker(): Promise<
      FROM loans
      JOIN borrowers ON borrowers.id = loans.borrower_id
      LEFT JOIN repayment_schedule ON repayment_schedule.loan_id = loans.id AND repayment_schedule.status <> 'paid'
-     WHERE loans.status = 'active'
+     WHERE loans.status = 'active' AND loans.archived_at IS NULL
      GROUP BY loans.id, borrowers.full_name
      ORDER BY borrowers.full_name ASC`
   );
@@ -240,4 +249,174 @@ export async function listActiveLoansForPicker(): Promise<
     borrowerName: row.borrower_name,
     outstanding: Number(row.outstanding),
   }));
+}
+
+export async function archiveLoan(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE loans SET archived_at = NOW() WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "loan.archived", entity: "loan", entityId: id });
+  });
+}
+
+export async function restoreLoan(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE loans SET archived_at = NULL WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "loan.restored", entity: "loan", entityId: id });
+  });
+}
+
+/**
+ * Recomputes a loan's entire repayment_schedule from scratch based on its
+ * *current* set of payments (used after a payment is deleted, since the
+ * original sequential allocation can no longer be trusted). Resets every
+ * schedule row to pending/0, then replays the exact same oldest-due-first
+ * allocation recordPayment() uses, once per remaining payment in
+ * chronological order. Re-derives loans.status, but never touches a
+ * 'written_off' loan's status (manual state) even though its schedule
+ * still gets recomputed underneath.
+ */
+export async function recomputeLoanScheduleFromPayments(
+  loanId: number,
+  staffId: number,
+  conn: PoolConnection
+): Promise<void> {
+  const [scheduleRows] = await conn.query<RowDataPacket[]>(
+    `SELECT id, total_due FROM repayment_schedule
+     WHERE loan_id = ?
+     ORDER BY due_date ASC, instalment_number ASC
+     FOR UPDATE`,
+    [loanId]
+  );
+
+  const [paymentRows] = await conn.query<RowDataPacket[]>(
+    `SELECT amount FROM payments
+     WHERE loan_id = ?
+     ORDER BY paid_at ASC, id ASC
+     FOR UPDATE`,
+    [loanId]
+  );
+
+  // Replay allocation in-memory against the reset schedule.
+  const state = scheduleRows.map((row) => ({
+    id: row.id as number,
+    totalDue: row.total_due as number,
+    amountPaid: 0,
+  }));
+
+  for (const payment of paymentRows) {
+    let remaining = payment.amount as number;
+    for (const row of state) {
+      if (remaining <= 0) break;
+      const rowOutstanding = row.totalDue - row.amountPaid;
+      if (rowOutstanding <= 0) continue;
+      const applied = Math.min(remaining, rowOutstanding);
+      row.amountPaid += applied;
+      remaining -= applied;
+    }
+    // Any leftover here means this payment can no longer be fully absorbed
+    // by the schedule (e.g. schedule edited outside the normal flow) --
+    // not thrown, since this is recomputing already-accepted history, but
+    // worth surfacing to whoever reviews the audit log.
+  }
+
+  for (const row of state) {
+    const status = row.amountPaid >= row.totalDue ? "paid" : row.amountPaid > 0 ? "partial" : "pending";
+    await conn.query("UPDATE repayment_schedule SET amount_paid = ?, status = ? WHERE id = ?", [
+      row.amountPaid,
+      status,
+      row.id,
+    ]);
+  }
+
+  const [[loanRow]] = await conn.query<RowDataPacket[]>(
+    "SELECT status FROM loans WHERE id = ? FOR UPDATE",
+    [loanId]
+  );
+  if (loanRow.status === "written_off") return;
+
+  const allPaid = state.every((row) => row.amountPaid >= row.totalDue);
+  const newStatus = allPaid ? "paid_off" : "active";
+  if (newStatus !== loanRow.status) {
+    await conn.query("UPDATE loans SET status = ? WHERE id = ?", [newStatus, loanId]);
+    await logAudit(conn, {
+      staffId,
+      action: newStatus === "paid_off" ? "loan.paid_off" : "loan.reactivated",
+      entity: "loan",
+      entityId: loanId,
+      detail: { reason: "payment deleted, schedule recomputed" },
+    });
+  }
+}
+
+/**
+ * Permanently deletes a loan. Only allowed once it's already 'written_off'
+ * -- a deliberate two-step process rather than one confirm() destroying an
+ * active loan's payment history. Deletes its payments first (payments.loan_id
+ * is ON DELETE RESTRICT), then the loan itself (repayment_schedule cascades
+ * via the existing FK).
+ */
+export async function deleteLoan(
+  id: number,
+  staffId: number
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM loans WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const loan = rows[0];
+    if (!loan) {
+      return { error: "Loan not found." };
+    }
+    if (loan.status !== "written_off") {
+      return {
+        error: "This loan must be written off before it can be permanently deleted.",
+      };
+    }
+
+    const [paymentRows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM payments WHERE loan_id = ? FOR UPDATE",
+      [id]
+    );
+
+    if (paymentRows.length > 0) {
+      await conn.query("DELETE FROM payments WHERE loan_id = ?", [id]);
+      for (const payment of paymentRows) {
+        await logAudit(conn, {
+          staffId,
+          action: "payment.deleted",
+          entity: "payment",
+          entityId: payment.id,
+          detail: {
+            loanId: id,
+            amount: payment.amount,
+            method: payment.method,
+            reference: payment.reference,
+            paidAt: payment.paid_at,
+            recordedBy: payment.recorded_by,
+          },
+        });
+      }
+    }
+
+    await conn.query("DELETE FROM loans WHERE id = ?", [id]);
+
+    const paymentsTotal = paymentRows.reduce((sum, p) => sum + p.amount, 0);
+    await logAudit(conn, {
+      staffId,
+      action: "loan.deleted",
+      entity: "loan",
+      entityId: id,
+      detail: {
+        borrowerId: loan.borrower_id,
+        applicationId: loan.application_id,
+        principal: loan.principal,
+        termMonths: loan.term_months,
+        paymentsDeletedCount: paymentRows.length,
+        paymentsDeletedTotal: paymentsTotal,
+      },
+    });
+
+    return {};
+  });
 }

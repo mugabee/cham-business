@@ -1,7 +1,8 @@
 import "server-only";
 import type { Pool, PoolConnection, RowDataPacket } from "mysql2/promise";
-import { pool } from "@/lib/db";
+import { pool, withTransaction } from "@/lib/db";
 import { encrypt, decrypt } from "@/lib/crypto";
+import { logAudit } from "@/lib/audit";
 
 export type BorrowerSummary = {
   id: number;
@@ -9,6 +10,7 @@ export type BorrowerSummary = {
   phone: string;
   email: string | null;
   createdAt: Date;
+  archivedAt: Date | null;
 };
 
 export type BorrowerDetail = BorrowerSummary & {
@@ -55,6 +57,7 @@ export async function createBorrower(
 
 export async function listBorrowers(opts: {
   search?: string;
+  archived?: boolean;
 }): Promise<BorrowerSummary[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
@@ -62,10 +65,11 @@ export async function listBorrowers(opts: {
     conditions.push("(full_name LIKE ? OR phone LIKE ?)");
     values.push(`%${opts.search}%`, `%${opts.search}%`);
   }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  conditions.push(opts.archived ? "archived_at IS NOT NULL" : "archived_at IS NULL");
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, full_name, phone, email, created_at
+    `SELECT id, full_name, phone, email, created_at, archived_at
      FROM borrowers
      ${where}
      ORDER BY full_name ASC`,
@@ -78,6 +82,7 @@ export async function listBorrowers(opts: {
     phone: row.phone,
     email: row.email,
     createdAt: row.created_at,
+    archivedAt: row.archived_at,
   }));
 }
 
@@ -85,7 +90,7 @@ export async function getBorrowerById(
   id: number
 ): Promise<BorrowerDetail | null> {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, full_name, phone, email, national_id_enc, monthly_income, address, created_at
+    `SELECT id, full_name, phone, email, national_id_enc, monthly_income, address, created_at, archived_at
      FROM borrowers WHERE id = ? LIMIT 1`,
     [id]
   );
@@ -111,6 +116,7 @@ export async function getBorrowerById(
     monthlyIncome: row.monthly_income,
     address: row.address,
     createdAt: row.created_at,
+    archivedAt: row.archived_at,
     loans: loanRows.map((loan) => ({
       id: loan.id,
       principal: loan.principal,
@@ -119,4 +125,75 @@ export async function getBorrowerById(
       outstanding: Number(loan.outstanding),
     })),
   };
+}
+
+export async function archiveBorrower(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE borrowers SET archived_at = NOW() WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "borrower.archived", entity: "borrower", entityId: id });
+  });
+}
+
+export async function restoreBorrower(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE borrowers SET archived_at = NULL WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "borrower.restored", entity: "borrower", entityId: id });
+  });
+}
+
+/**
+ * Permanently deletes a borrower. Blocked if any loans reference them --
+ * both a proactive count check and a fallback catch on the raw FK error,
+ * since loans.borrower_id is ON DELETE RESTRICT.
+ */
+export async function deleteBorrower(
+  id: number,
+  staffId: number
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM borrowers WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const borrower = rows[0];
+    if (!borrower) {
+      return { error: "Borrower not found." };
+    }
+
+    const [[loanCountRow]] = await conn.query<RowDataPacket[]>(
+      "SELECT COUNT(*) AS count FROM loans WHERE borrower_id = ?",
+      [id]
+    );
+    if (loanCountRow.count > 0) {
+      return {
+        error: `Cannot delete: this borrower has ${loanCountRow.count} loan(s). Delete those first.`,
+      };
+    }
+
+    try {
+      await conn.query("DELETE FROM borrowers WHERE id = ?", [id]);
+    } catch (err) {
+      if ((err as { errno?: number }).errno === 1451) {
+        return { error: "Cannot delete: this borrower still has linked records." };
+      }
+      throw err;
+    }
+
+    await logAudit(conn, {
+      staffId,
+      action: "borrower.deleted",
+      entity: "borrower",
+      entityId: id,
+      detail: {
+        fullName: borrower.full_name,
+        phone: borrower.phone,
+        email: borrower.email,
+        monthlyIncome: borrower.monthly_income,
+        address: borrower.address,
+        hadNationalId: Boolean(borrower.national_id_enc),
+      },
+    });
+
+    return {};
+  });
 }

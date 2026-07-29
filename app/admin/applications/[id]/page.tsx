@@ -4,6 +4,8 @@ import { verifySession } from "@/lib/dal";
 import { getApplicationById } from "@/lib/applications";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
+import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import { deleteApplicationAction } from "@/app/actions/applications";
 import ApplicationActions from "./ApplicationActions";
 
 const statusTone = {
@@ -34,7 +36,22 @@ export default async function ApplicationDetailPage({
 
       <div className="mt-3 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">{application.fullName}</h1>
-        <StatusBadge label={application.status} tone={statusTone[application.status]} />
+        <div className="flex items-center gap-3">
+          <StatusBadge label={application.status} tone={statusTone[application.status]} />
+          {application.archivedAt && <StatusBadge label="archived" tone="neutral" />}
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <ArchiveDeleteControls
+          entity="application"
+          id={application.id}
+          archived={Boolean(application.archivedAt)}
+          confirmMessage={`Permanently delete this application from ${application.fullName}? This cannot be undone.`}
+          deleteAction={deleteApplicationAction}
+          deleteDisabled={application.status === "approved"}
+          deleteDisabledReason="Already approved -- delete the linked loan first if needed."
+        />
       </div>
 
       <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5 grid grid-cols-2 gap-4 text-sm">

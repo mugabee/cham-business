@@ -14,6 +14,7 @@ export type ApplicationSummary = {
   amountRequested: number;
   status: "new" | "reviewing" | "approved" | "rejected";
   submittedAt: Date;
+  archivedAt: Date | null;
 };
 
 export type ApplicationDetail = ApplicationSummary & {
@@ -50,6 +51,7 @@ export async function createApplicationFromPublicForm(
 
 export async function listApplications(opts: {
   status?: string;
+  archived?: boolean;
 }): Promise<ApplicationSummary[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
@@ -57,10 +59,11 @@ export async function listApplications(opts: {
     conditions.push("status = ?");
     values.push(opts.status);
   }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  conditions.push(opts.archived ? "archived_at IS NOT NULL" : "archived_at IS NULL");
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at
+    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at
      FROM applications
      ${where}
      ORDER BY submitted_at DESC`,
@@ -75,6 +78,7 @@ export async function listApplications(opts: {
     amountRequested: row.amount_requested,
     status: row.status,
     submittedAt: row.submitted_at,
+    archivedAt: row.archived_at,
   }));
 }
 
@@ -86,7 +90,7 @@ export async function getApplicationById(
             applications.loan_type, applications.amount_requested, applications.purpose,
             applications.monthly_income, applications.status, applications.submitted_at,
             applications.borrower_id, applications.reviewed_at, applications.notes,
-            staff.email AS reviewed_by_email
+            applications.archived_at, staff.email AS reviewed_by_email
      FROM applications
      LEFT JOIN staff ON staff.id = applications.reviewed_by
      WHERE applications.id = ?
@@ -111,6 +115,7 @@ export async function getApplicationById(
     reviewedByEmail: row.reviewed_by_email,
     reviewedAt: row.reviewed_at,
     notes: row.notes,
+    archivedAt: row.archived_at,
   };
 }
 
@@ -204,5 +209,80 @@ export async function rejectApplication(params: {
       entityId: params.applicationId,
       detail: { notes: params.notes },
     });
+  });
+}
+
+export async function archiveApplication(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE applications SET archived_at = NOW() WHERE id = ?", [id]);
+    await logAudit(conn, {
+      staffId,
+      action: "application.archived",
+      entity: "application",
+      entityId: id,
+    });
+  });
+}
+
+export async function restoreApplication(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE applications SET archived_at = NULL WHERE id = ?", [id]);
+    await logAudit(conn, {
+      staffId,
+      action: "application.restored",
+      entity: "application",
+      entityId: id,
+    });
+  });
+}
+
+/**
+ * Permanently deletes an application. Blocked for approved applications --
+ * those have already spawned a live borrower/loan, and deleting the
+ * application would sever that provenance while the loan lives on.
+ */
+export async function deleteApplication(
+  id: number,
+  staffId: number
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const application = rows[0];
+    if (!application) {
+      return { error: "Application not found." };
+    }
+    if (application.status === "approved") {
+      return {
+        error:
+          "This application has already been approved and has a linked loan -- delete the loan first if you really need to remove this record.",
+      };
+    }
+
+    await conn.query("DELETE FROM applications WHERE id = ?", [id]);
+
+    await logAudit(conn, {
+      staffId,
+      action: "application.deleted",
+      entity: "application",
+      entityId: id,
+      detail: {
+        fullName: application.full_name,
+        phone: application.phone,
+        email: application.email,
+        loanType: application.loan_type,
+        amountRequested: application.amount_requested,
+        purpose: application.purpose,
+        monthlyIncome: application.monthly_income,
+        status: application.status,
+        submittedAt: application.submitted_at,
+        borrowerId: application.borrower_id,
+        notes: application.notes,
+      },
+    });
+
+    return {};
   });
 }

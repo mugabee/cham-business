@@ -1,7 +1,8 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { approveApplication, rejectApplication } from "@/lib/applications";
+import { approveApplication, rejectApplication, deleteApplication } from "@/lib/applications";
 import { approveApplicationSchema, rejectApplicationSchema } from "@/lib/validation";
 
 export async function approveApplicationAction(
@@ -42,6 +43,22 @@ export async function approveApplicationAction(
   revalidatePath("/admin/applications");
   revalidatePath(`/admin/applications/${result.data.applicationId}`);
   return { success: true };
+}
+
+export async function deleteApplicationAction(
+  _prevState: { error?: string } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+
+  const { error } = await deleteApplication(id, session.userId);
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/admin/applications");
+  redirect("/admin/applications");
 }
 
 export async function rejectApplicationAction(

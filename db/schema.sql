@@ -42,10 +42,12 @@ CREATE TABLE IF NOT EXISTS borrowers (
   address          VARCHAR(500) NULL,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by       INT NULL,
+  archived_at      DATETIME NULL,
   FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_borrowers_phone ON borrowers(phone);
 CREATE INDEX idx_borrowers_full_name ON borrowers(full_name);
+CREATE INDEX idx_borrowers_archived_at ON borrowers(archived_at);
 
 CREATE TABLE IF NOT EXISTS applications (
   id                INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,11 +64,13 @@ CREATE TABLE IF NOT EXISTS applications (
   reviewed_by       INT NULL,
   reviewed_at       DATETIME NULL,
   notes             VARCHAR(2000) NULL,
+  archived_at       DATETIME NULL,
   FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE SET NULL,
   FOREIGN KEY (reviewed_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_applications_status ON applications(status);
 CREATE INDEX idx_applications_submitted_at ON applications(submitted_at);
+CREATE INDEX idx_applications_archived_at ON applications(archived_at);
 
 CREATE TABLE IF NOT EXISTS loans (
   id                     INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,12 +84,14 @@ CREATE TABLE IF NOT EXISTS loans (
   disbursed_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   disbursed_by           INT NULL,
   created_at             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  archived_at            DATETIME NULL,
   FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE RESTRICT,
   FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL,
   FOREIGN KEY (disbursed_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_loans_borrower_id ON loans(borrower_id);
 CREATE INDEX idx_loans_status ON loans(status);
+CREATE INDEX idx_loans_archived_at ON loans(archived_at);
 
 CREATE TABLE IF NOT EXISTS repayment_schedule (
   id                 INT AUTO_INCREMENT PRIMARY KEY,
@@ -112,11 +118,13 @@ CREATE TABLE IF NOT EXISTS payments (
   paid_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   recorded_by  INT NULL,
   notes        VARCHAR(1000) NULL,
+  archived_at  DATETIME NULL,
   FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE RESTRICT,
   FOREIGN KEY (recorded_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_payments_loan_id ON payments(loan_id);
 CREATE INDEX idx_payments_paid_at ON payments(paid_at);
+CREATE INDEX idx_payments_archived_at ON payments(archived_at);
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,

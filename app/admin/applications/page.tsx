@@ -22,32 +22,54 @@ const tabs = [
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; archived?: string }>;
 }) {
   await verifySession();
-  const { status } = await searchParams;
-  const applications = await listApplications({ status });
+  const { status, archived } = await searchParams;
+  const isArchived = archived === "1";
+  const applications = await listApplications({ status, archived: isArchived });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Applications</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Applications {isArchived && <span className="text-base font-normal text-gray-400">— Archived</span>}
+        </h1>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.value}
-            href={tab.value ? `/admin/applications?status=${tab.value}` : "/admin/applications"}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              (status ?? "") === tab.value
-                ? "bg-amber-600 text-white"
-                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-2">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.value}
+              href={
+                (tab.value ? `/admin/applications?status=${tab.value}` : "/admin/applications") +
+                (isArchived ? (tab.value ? "&archived=1" : "?archived=1") : "")
+              }
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                (status ?? "") === tab.value
+                  ? "bg-amber-600 text-white"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+        <Link
+          href={
+            isArchived
+              ? status
+                ? `/admin/applications?status=${status}`
+                : "/admin/applications"
+              : status
+                ? `/admin/applications?status=${status}&archived=1`
+                : "/admin/applications?archived=1"
+          }
+          className="rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+        >
+          {isArchived ? "← Back to active" : "Archived"}
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

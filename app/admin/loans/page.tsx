@@ -20,32 +20,54 @@ const tabs = [
 export default async function LoansPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; archived?: string }>;
 }) {
   await verifySession();
-  const { status } = await searchParams;
-  const loans = await listLoans({ status });
+  const { status, archived } = await searchParams;
+  const isArchived = archived === "1";
+  const loans = await listLoans({ status, archived: isArchived });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Loans</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Loans {isArchived && <span className="text-base font-normal text-gray-400">— Archived</span>}
+        </h1>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.value}
-            href={tab.value ? `/admin/loans?status=${tab.value}` : "/admin/loans"}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              (status ?? "") === tab.value
-                ? "bg-amber-600 text-white"
-                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-2">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.value}
+              href={
+                (tab.value ? `/admin/loans?status=${tab.value}` : "/admin/loans") +
+                (isArchived ? (tab.value ? "&archived=1" : "?archived=1") : "")
+              }
+              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                (status ?? "") === tab.value
+                  ? "bg-amber-600 text-white"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+        <Link
+          href={
+            isArchived
+              ? status
+                ? `/admin/loans?status=${status}`
+                : "/admin/loans"
+              : status
+                ? `/admin/loans?status=${status}&archived=1`
+                : "/admin/loans?archived=1"
+          }
+          className="rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+        >
+          {isArchived ? "← Back to active" : "Archived"}
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

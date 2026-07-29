@@ -1,7 +1,8 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { recordPayment } from "@/lib/payments";
+import { recordPayment, deletePayment } from "@/lib/payments";
 import { recordPaymentSchema } from "@/lib/validation";
 
 export async function recordPaymentAction(
@@ -29,4 +30,23 @@ export async function recordPaymentAction(
   }
 
   redirect(`/admin/loans/${result.data.loanId}`);
+}
+
+export async function deletePaymentAction(
+  _prevState: { error?: string } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+  const loanId = formData.get("loanId") ? Number(formData.get("loanId")) : null;
+
+  try {
+    await deletePayment(id, session.userId);
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Failed to delete payment." };
+  }
+
+  revalidatePath("/admin/payments");
+  if (loanId) revalidatePath(`/admin/loans/${loanId}`);
+  return { success: true };
 }

@@ -2,17 +2,27 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { listPayments } from "@/lib/payments";
 import { formatRWF, formatDate } from "@/lib/format";
+import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import { deletePaymentAction } from "@/app/actions/payments";
 
 const methodLabel = { mtn: "MTN Mobile Money", airtel: "Airtel Money", bank: "Bank transfer" } as const;
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
   await verifySession();
-  const payments = await listPayments({});
+  const { archived } = await searchParams;
+  const isArchived = archived === "1";
+  const payments = await listPayments({ archived: isArchived });
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Payments</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Payments {isArchived && <span className="text-base font-normal text-gray-400">— Archived</span>}
+        </h1>
         <Link
           href="/admin/payments/new"
           className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
@@ -21,7 +31,16 @@ export default async function PaymentsPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="flex justify-end mb-4">
+        <Link
+          href={isArchived ? "/admin/payments" : "/admin/payments?archived=1"}
+          className="rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+        >
+          {isArchived ? "← Back to active" : "Archived"}
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr>
@@ -31,6 +50,7 @@ export default async function PaymentsPage() {
               <th className="px-4 py-3 font-medium">Method</th>
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Recorded by</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -49,11 +69,21 @@ export default async function PaymentsPage() {
                 <td className="px-4 py-3 text-gray-700">{methodLabel[p.method]}</td>
                 <td className="px-4 py-3 text-gray-700">{p.reference || "—"}</td>
                 <td className="px-4 py-3 text-gray-500">{p.recordedByEmail || "—"}</td>
+                <td className="px-4 py-3">
+                  <ArchiveDeleteControls
+                    entity="payment"
+                    id={p.id}
+                    archived={Boolean(p.archivedAt)}
+                    confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
+                    deleteAction={deletePaymentAction}
+                    extraFields={{ loanId: p.loanId }}
+                  />
+                </td>
               </tr>
             ))}
             {payments.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                   No payments recorded yet.
                 </td>
               </tr>

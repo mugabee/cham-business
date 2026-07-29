@@ -2,6 +2,7 @@ import "server-only";
 import type { RowDataPacket } from "mysql2/promise";
 import { pool, withTransaction } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
+import { recomputeLoanScheduleFromPayments } from "@/lib/loans";
 
 export type PaymentListRow = {
   id: number;
@@ -12,6 +13,7 @@ export type PaymentListRow = {
   reference: string | null;
   paidAt: Date;
   recordedByEmail: string | null;
+  archivedAt: Date | null;
 };
 
 export async function recordPayment(params: {
@@ -105,6 +107,7 @@ export async function recordPayment(params: {
 export async function listPayments(opts: {
   loanId?: number;
   limit?: number;
+  archived?: boolean;
 }): Promise<PaymentListRow[]> {
   const conditions: string[] = [];
   const values: unknown[] = [];
@@ -112,12 +115,15 @@ export async function listPayments(opts: {
     conditions.push("payments.loan_id = ?");
     values.push(opts.loanId);
   }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  conditions.push(
+    opts.archived ? "payments.archived_at IS NOT NULL" : "payments.archived_at IS NULL"
+  );
+  const where = `WHERE ${conditions.join(" AND ")}`;
 
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT payments.id, payments.loan_id, borrowers.full_name AS borrower_name,
             payments.amount, payments.method, payments.reference, payments.paid_at,
-            staff.email AS recorded_by_email
+            payments.archived_at, staff.email AS recorded_by_email
      FROM payments
      JOIN loans ON loans.id = payments.loan_id
      JOIN borrowers ON borrowers.id = loans.borrower_id
@@ -137,5 +143,57 @@ export async function listPayments(opts: {
     reference: row.reference,
     paidAt: row.paid_at,
     recordedByEmail: row.recorded_by_email,
+    archivedAt: row.archived_at,
   }));
+}
+
+export async function archivePayment(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE payments SET archived_at = NOW() WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "payment.archived", entity: "payment", entityId: id });
+  });
+}
+
+export async function restorePayment(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE payments SET archived_at = NULL WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "payment.restored", entity: "payment", entityId: id });
+  });
+}
+
+/**
+ * Permanently deletes a single payment, then recomputes its loan's entire
+ * schedule from the remaining payments (the original sequential allocation
+ * can't be trusted once a historical payment is removed from the middle).
+ */
+export async function deletePayment(id: number, staffId: number): Promise<void> {
+  await withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM payments WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const payment = rows[0];
+    if (!payment) {
+      throw new Error("Payment not found.");
+    }
+
+    await conn.query("DELETE FROM payments WHERE id = ?", [id]);
+
+    await logAudit(conn, {
+      staffId,
+      action: "payment.deleted",
+      entity: "payment",
+      entityId: id,
+      detail: {
+        loanId: payment.loan_id,
+        amount: payment.amount,
+        method: payment.method,
+        reference: payment.reference,
+        paidAt: payment.paid_at,
+        recordedBy: payment.recorded_by,
+      },
+    });
+
+    await recomputeLoanScheduleFromPayments(payment.loan_id, staffId, conn);
+  });
 }
