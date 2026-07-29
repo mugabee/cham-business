@@ -265,6 +265,22 @@ export async function restoreLoan(id: number, staffId: number): Promise<void> {
   });
 }
 
+export async function writeOffLoan(id: number, staffId: number): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [[loan]] = await conn.query<RowDataPacket[]>(
+      "SELECT status FROM loans WHERE id = ? FOR UPDATE",
+      [id]
+    );
+    if (!loan) return { error: "Loan not found." };
+    if (loan.status !== "active") {
+      return { error: "Only an active loan can be written off." };
+    }
+    await conn.query("UPDATE loans SET status = 'written_off' WHERE id = ?", [id]);
+    await logAudit(conn, { staffId, action: "loan.written_off", entity: "loan", entityId: id });
+    return {};
+  });
+}
+
 /**
  * Recomputes a loan's entire repayment_schedule from scratch based on its
  * *current* set of payments (used after a payment is deleted, since the

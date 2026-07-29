@@ -5,6 +5,7 @@ import { getLoanById } from "@/lib/loans";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import WriteOffLoanButton from "@/components/admin/WriteOffLoanButton";
 import { deleteLoanAction } from "@/app/actions/loans";
 import { deletePaymentAction } from "@/app/actions/payments";
 
@@ -57,12 +58,15 @@ export default async function LoanDetailPage({
           <StatusBadge label={loan.status} tone={loanStatusTone[loan.status]} />
           {loan.archivedAt && <StatusBadge label="archived" tone="neutral" />}
           {loan.status === "active" && (
-            <Link
-              href={`/admin/payments/new?loanId=${loan.id}`}
-              className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
-            >
-              Record payment
-            </Link>
+            <>
+              <Link
+                href={`/admin/payments/new?loanId=${loan.id}`}
+                className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
+              >
+                Record payment
+              </Link>
+              <WriteOffLoanButton loanId={loan.id} />
+            </>
           )}
         </div>
       </div>

@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { createLoan, deleteLoan } from "@/lib/loans";
+import { createLoan, deleteLoan, writeOffLoan } from "@/lib/loans";
 import { logAudit } from "@/lib/audit";
 import { pool } from "@/lib/db";
 import { createLoanSchema } from "@/lib/validation";
@@ -41,6 +41,22 @@ export async function createLoanAction(
   });
 
   redirect(`/admin/loans/${loanId}`);
+}
+
+export async function writeOffLoanAction(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+
+  const { error } = await writeOffLoan(id, session.userId);
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath(`/admin/loans/${id}`);
+  return { success: true };
 }
 
 export async function deleteLoanAction(
