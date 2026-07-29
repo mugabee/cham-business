@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "Learn about Cham Business Ltd, a registered non-deposit lender serving individuals across Rwanda.",
 };
 
+// See app/(public)/page.tsx for why this is forced dynamic.
+export const dynamic = "force-dynamic";
+
 const values = [
   { title: "Fairness first", text: "We only lend what we believe you can comfortably repay. Your wellbeing matters more than a quick sale." },
   { title: "Total clarity", text: "Every cost is on the table before you sign. No fine print, no surprise fees." },

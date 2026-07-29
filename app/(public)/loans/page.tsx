@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     "Six loan types, one clear rate. RWF 300,000–20,000,000 at 5% per month on the reducing balance, repayment agreed with you.",
 };
 
+// See app/(public)/page.tsx for why this is forced dynamic.
+export const dynamic = "force-dynamic";
+
 export default function LoansPage() {
   return (
     <>

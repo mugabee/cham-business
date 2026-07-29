@@ -3,6 +3,12 @@ import LoanCard from "@/components/LoanCard";
 import Wave from "@/components/Wave";
 import { loanProducts } from "@/lib/site";
 
+// Forced dynamic: static pages on this host get stuck serving pre-deploy
+// content (and referencing since-removed JS chunk hashes) indefinitely,
+// since this custom server.js setup doesn't support Next's normal
+// revalidation. See app/login/page.tsx for the original diagnosis.
+export const dynamic = "force-dynamic";
+
 const steps = [
   { title: "Apply in minutes", text: "Fill a short form online or visit our office in Kigali. No long paperwork." },
   { title: "We review fairly", text: "We check affordability openly and get back to you, usually within 24 hours." },

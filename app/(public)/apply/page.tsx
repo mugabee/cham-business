@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "Apply for a personal loan with Cham Business Ltd. A short form, a quick decision.",
 };
 
+// See app/(public)/page.tsx for why this is forced dynamic.
+export const dynamic = "force-dynamic";
+
 export default function ApplyPage() {
   return (
     <>

@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "How to apply for and receive a loan from Cham Business Ltd in Rwanda.",
 };
 
+// See app/(public)/page.tsx for why this is forced dynamic.
+export const dynamic = "force-dynamic";
+
 const steps = [
   {
     title: "Apply",
