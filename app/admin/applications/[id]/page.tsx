@@ -37,6 +37,14 @@ export default async function ApplicationDetailPage({
       <div className="mt-3 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">{application.fullName}</h1>
         <div className="flex items-center gap-3">
+          {isPending && (
+            <Link
+              href={`/admin/applications/${application.id}/edit`}
+              className="rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 transition-colors"
+            >
+              Edit
+            </Link>
+          )}
           <StatusBadge label={application.status} tone={statusTone[application.status]} />
           {application.archivedAt && <StatusBadge label="archived" tone="neutral" />}
         </div>

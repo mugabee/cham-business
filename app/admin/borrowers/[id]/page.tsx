@@ -35,12 +35,20 @@ export default async function BorrowerDetailPage({
           <h1 className="text-2xl font-semibold text-gray-900">{borrower.fullName}</h1>
           {borrower.archivedAt && <StatusBadge label="archived" tone="neutral" />}
         </div>
-        <Link
-          href={`/admin/loans/new?borrowerId=${borrower.id}`}
-          className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
-        >
-          + New loan
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/borrowers/${borrower.id}/edit`}
+            className="rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 transition-colors"
+          >
+            Edit
+          </Link>
+          <Link
+            href={`/admin/loans/new?borrowerId=${borrower.id}`}
+            className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
+          >
+            + New loan
+          </Link>
+        </div>
       </div>
 
       <div className="mt-3">

@@ -70,14 +70,22 @@ export default async function PaymentsPage({
                 <td className="px-4 py-3 text-gray-700">{p.reference || "—"}</td>
                 <td className="px-4 py-3 text-gray-500">{p.recordedByEmail || "—"}</td>
                 <td className="px-4 py-3">
-                  <ArchiveDeleteControls
-                    entity="payment"
-                    id={p.id}
-                    archived={Boolean(p.archivedAt)}
-                    confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
-                    deleteAction={deletePaymentAction}
-                    extraFields={{ loanId: p.loanId }}
-                  />
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/admin/payments/${p.id}/edit`}
+                      className="text-sm font-medium text-gray-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <ArchiveDeleteControls
+                      entity="payment"
+                      id={p.id}
+                      archived={Boolean(p.archivedAt)}
+                      confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
+                      deleteAction={deletePaymentAction}
+                      extraFields={{ loanId: p.loanId }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

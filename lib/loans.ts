@@ -282,6 +282,107 @@ export async function writeOffLoan(id: number, staffId: number): Promise<{ error
 }
 
 /**
+ * Restructures an active loan: regenerates the schedule for its remaining
+ * (non-paid) balance under a new term/rate starting from an effective date.
+ * Already-paid instalments are left untouched -- only the outstanding rows
+ * are replaced, so history stays intact. New instalment numbers continue on
+ * from however many instalments are already paid, and loans.term_months is
+ * updated to reflect the new total length (paid so far + new term).
+ */
+export async function restructureLoan(params: {
+  loanId: number;
+  newTermMonths: number;
+  newMonthlyRate?: number;
+  effectiveDate: Date;
+  staffId: number;
+}): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [[loan]] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM loans WHERE id = ? LIMIT 1 FOR UPDATE",
+      [params.loanId]
+    );
+    if (!loan) return { error: "Loan not found." };
+    if (loan.status !== "active") {
+      return { error: "Only an active loan can be restructured." };
+    }
+
+    const [scheduleRows] = await conn.query<RowDataPacket[]>(
+      `SELECT id, total_due, amount_paid, status FROM repayment_schedule
+       WHERE loan_id = ?
+       ORDER BY instalment_number ASC
+       FOR UPDATE`,
+      [params.loanId]
+    );
+
+    const paidRows = scheduleRows.filter((row) => row.status === "paid");
+    const outstandingRows = scheduleRows.filter((row) => row.status !== "paid");
+    const outstandingBalance = outstandingRows.reduce(
+      (sum, row) => sum + (row.total_due - row.amount_paid),
+      0
+    );
+
+    if (outstandingBalance <= 0) {
+      return { error: "This loan has no outstanding balance to restructure." };
+    }
+
+    const oldTermMonths = loan.term_months as number;
+    const oldRate = Number(loan.interest_rate_monthly);
+    const newRate = params.newMonthlyRate ?? oldRate;
+
+    const newInstalments = generateSchedule(
+      outstandingBalance,
+      params.newTermMonths,
+      params.effectiveDate,
+      newRate
+    );
+
+    const outstandingIds = outstandingRows.map((row) => row.id);
+    await conn.query("DELETE FROM repayment_schedule WHERE id IN (?)", [outstandingIds]);
+
+    const startInstalment = paidRows.length;
+    const rows = newInstalments.map((instalment) => [
+      params.loanId,
+      startInstalment + instalment.instalmentNumber,
+      instalment.dueDate,
+      instalment.principalPortion,
+      instalment.interestPortion,
+      instalment.amountDue,
+    ]);
+
+    await conn.query(
+      `INSERT INTO repayment_schedule
+         (loan_id, instalment_number, due_date, principal_due, interest_due, total_due)
+       VALUES ?`,
+      [rows]
+    );
+
+    const newTotalTermMonths = startInstalment + params.newTermMonths;
+    await conn.query("UPDATE loans SET term_months = ?, interest_rate_monthly = ? WHERE id = ?", [
+      newTotalTermMonths,
+      newRate,
+      params.loanId,
+    ]);
+
+    await logAudit(conn, {
+      staffId: params.staffId,
+      action: "loan.restructured",
+      entity: "loan",
+      entityId: params.loanId,
+      detail: {
+        oldTermMonths,
+        oldRate,
+        outstandingBalance,
+        newTermMonths: params.newTermMonths,
+        newRate,
+        effectiveDate: params.effectiveDate,
+      },
+    });
+
+    return {};
+  });
+}
+
+/**
  * Recomputes a loan's entire repayment_schedule from scratch based on its
  * *current* set of payments (used after a payment is deleted, since the
  * original sequential allocation can no longer be trusted). Resets every

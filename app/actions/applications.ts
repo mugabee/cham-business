@@ -2,8 +2,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { approveApplication, rejectApplication, deleteApplication } from "@/lib/applications";
-import { approveApplicationSchema, rejectApplicationSchema } from "@/lib/validation";
+import { approveApplication, rejectApplication, updateApplication, deleteApplication } from "@/lib/applications";
+import { approveApplicationSchema, rejectApplicationSchema, updateApplicationSchema } from "@/lib/validation";
 
 export async function approveApplicationAction(
   _prevState: { error?: string } | undefined,
@@ -43,6 +43,37 @@ export async function approveApplicationAction(
   revalidatePath("/admin/applications");
   revalidatePath(`/admin/applications/${result.data.applicationId}`);
   return { success: true };
+}
+
+export async function updateApplicationAction(
+  _prevState: { error?: string } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+
+  const result = updateApplicationSchema.safeParse({
+    applicationId: formData.get("applicationId"),
+    fullName: formData.get("fullName"),
+    phone: formData.get("phone"),
+    email: formData.get("email") || "",
+    loanType: formData.get("loanType"),
+    amountRequested: formData.get("amountRequested"),
+    monthlyIncome: formData.get("monthlyIncome"),
+    purpose: formData.get("purpose"),
+  });
+
+  if (!result.success) {
+    return { error: result.error.issues[0]?.message ?? "Invalid submission." };
+  }
+
+  const { applicationId, ...rest } = result.data;
+  const { error } = await updateApplication(applicationId, rest, session.userId);
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath(`/admin/applications/${applicationId}`);
+  redirect(`/admin/applications/${applicationId}`);
 }
 
 export async function deleteApplicationAction(

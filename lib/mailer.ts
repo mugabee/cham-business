@@ -31,3 +31,27 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     html: `<p>We received a request to reset your password. Click below to choose a new one (valid for 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can ignore this email.</p>`,
   });
 }
+
+export async function sendOverdueReminderEmail(
+  to: string,
+  borrowerName: string,
+  installments: { dueDate: Date; amountOverdue: number }[]
+) {
+  const total = installments.reduce((sum, i) => sum + i.amountOverdue, 0);
+  const dateStr = (d: Date) => d.toISOString().slice(0, 10);
+
+  const textLines = installments
+    .map((i) => `- ${dateStr(i.dueDate)}: RWF ${i.amountOverdue.toLocaleString()}`)
+    .join("\n");
+  const htmlItems = installments
+    .map((i) => `<li>${dateStr(i.dueDate)}: RWF ${i.amountOverdue.toLocaleString()}</li>`)
+    .join("");
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: "Cham Business: overdue loan instalment reminder",
+    text: `Dear ${borrowerName},\n\nOur records show the following instalment(s) are now overdue:\n\n${textLines}\n\nTotal overdue: RWF ${total.toLocaleString()}\n\nPlease make payment as soon as possible, or contact us to discuss your repayment plan.\n\nCham Business Ltd`,
+    html: `<p>Dear ${borrowerName},</p><p>Our records show the following instalment(s) are now overdue:</p><ul>${htmlItems}</ul><p>Total overdue: RWF ${total.toLocaleString()}</p><p>Please make payment as soon as possible, or contact us to discuss your repayment plan.</p><p>Cham Business Ltd</p>`,
+  });
+}

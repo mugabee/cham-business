@@ -212,6 +212,66 @@ export async function rejectApplication(params: {
   });
 }
 
+export async function updateApplication(
+  id: number,
+  params: {
+    fullName: string;
+    phone: string;
+    email?: string | null;
+    loanType: string;
+    amountRequested: number;
+    monthlyIncome: number;
+    purpose: string;
+  },
+  staffId: number
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT status FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const application = rows[0];
+    if (!application) return { error: "Application not found." };
+    if (application.status !== "new" && application.status !== "reviewing") {
+      return { error: "Only a pending application (new or reviewing) can be edited." };
+    }
+
+    await conn.query(
+      `UPDATE applications
+       SET full_name = ?, phone = ?, email = ?, loan_type = ?, amount_requested = ?, monthly_income = ?, purpose = ?
+       WHERE id = ?`,
+      [
+        params.fullName,
+        params.phone,
+        params.email || null,
+        params.loanType,
+        params.amountRequested,
+        params.monthlyIncome,
+        params.purpose,
+        id,
+      ]
+    );
+
+    await logAudit(conn, {
+      staffId,
+      action: "application.updated",
+      entity: "application",
+      entityId: id,
+      detail: {
+        fullName: params.fullName,
+        phone: params.phone,
+        email: params.email || null,
+        loanType: params.loanType,
+        amountRequested: params.amountRequested,
+        monthlyIncome: params.monthlyIncome,
+        purpose: params.purpose,
+      },
+    });
+
+    return {};
+  });
+}
+
 export async function archiveApplication(id: number, staffId: number): Promise<void> {
   await withTransaction(async (conn) => {
     await conn.query("UPDATE applications SET archived_at = NOW() WHERE id = ?", [id]);

@@ -127,6 +127,67 @@ export async function getBorrowerById(
   };
 }
 
+export async function updateBorrower(
+  id: number,
+  params: {
+    fullName: string;
+    phone: string;
+    email?: string | null;
+    nationalId?: string | null;
+    monthlyIncome: number;
+    address?: string | null;
+  },
+  staffId: number
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM borrowers WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const borrower = rows[0];
+    if (!borrower) return { error: "Borrower not found." };
+
+    const nationalIdChanged =
+      params.nationalId !== undefined && params.nationalId !== decrypt(borrower.national_id_enc);
+
+    await conn.query(
+      `UPDATE borrowers
+       SET full_name = ?, phone = ?, email = ?, national_id_enc = ?, monthly_income = ?, address = ?
+       WHERE id = ?`,
+      [
+        params.fullName,
+        params.phone,
+        params.email || null,
+        nationalIdChanged
+          ? params.nationalId
+            ? encrypt(params.nationalId)
+            : null
+          : borrower.national_id_enc,
+        params.monthlyIncome,
+        params.address || null,
+        id,
+      ]
+    );
+
+    await logAudit(conn, {
+      staffId,
+      action: "borrower.updated",
+      entity: "borrower",
+      entityId: id,
+      detail: {
+        fullName: params.fullName,
+        phone: params.phone,
+        email: params.email || null,
+        monthlyIncome: params.monthlyIncome,
+        address: params.address || null,
+        nationalIdChanged,
+      },
+    });
+
+    return {};
+  });
+}
+
 export async function archiveBorrower(id: number, staffId: number): Promise<void> {
   await withTransaction(async (conn) => {
     await conn.query("UPDATE borrowers SET archived_at = NOW() WHERE id = ?", [id]);

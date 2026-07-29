@@ -58,6 +58,17 @@ export const approveApplicationSchema = z.object({
   notes: z.string().optional(),
 });
 
+export const updateApplicationSchema = z.object({
+  applicationId: z.coerce.number().int().positive(),
+  fullName: z.string().min(2, "Enter the applicant's full name"),
+  phone: z.string().min(10, "Enter a valid phone number"),
+  email: z.string().email("Enter a valid email").or(z.literal("")).optional(),
+  loanType: z.string().min(1, "Choose a loan type"),
+  amountRequested: z.coerce.number().int().positive("Enter the amount requested"),
+  monthlyIncome: z.coerce.number().int().nonnegative(),
+  purpose: z.string().min(5, "Tell us briefly what it's for"),
+});
+
 export const rejectApplicationSchema = z.object({
   applicationId: z.coerce.number().int().positive(),
   notes: z.string().min(1, "Add a short reason for the applicant's file"),
@@ -77,6 +88,19 @@ export const createLoanSchema = z.object({
   principal: z.coerce.number().int().positive("Enter the loan amount"),
   termMonths: z.coerce.number().int().min(1).max(60, "Term must be 1-60 months"),
   disbursedAt: z.string().min(1, "Pick a disbursement date"),
+});
+
+export const restructureLoanSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  newTermMonths: z.coerce.number().int().min(1).max(60, "Term must be 1-60 months"),
+  newMonthlyRatePercent: z.coerce.number().min(0).max(100).optional(),
+  effectiveDate: z.string().min(1, "Pick an effective date"),
+});
+
+export const updatePaymentSchema = z.object({
+  paymentId: z.coerce.number().int().positive(),
+  reference: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const recordPaymentSchema = z.object({

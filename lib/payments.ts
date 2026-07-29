@@ -147,6 +147,62 @@ export async function listPayments(opts: {
   }));
 }
 
+export async function getPaymentById(id: number): Promise<{
+  id: number;
+  loanId: number;
+  borrowerName: string;
+  amount: number;
+  method: "mtn" | "airtel" | "bank";
+  reference: string | null;
+  notes: string | null;
+  paidAt: Date;
+} | null> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT payments.id, payments.loan_id, borrowers.full_name AS borrower_name,
+            payments.amount, payments.method, payments.reference, payments.notes, payments.paid_at
+     FROM payments
+     JOIN loans ON loans.id = payments.loan_id
+     JOIN borrowers ON borrowers.id = loans.borrower_id
+     WHERE payments.id = ?
+     LIMIT 1`,
+    [id]
+  );
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    loanId: row.loan_id,
+    borrowerName: row.borrower_name,
+    amount: row.amount,
+    method: row.method,
+    reference: row.reference,
+    notes: row.notes,
+    paidAt: row.paid_at,
+  };
+}
+
+export async function updatePaymentNotes(
+  id: number,
+  params: { reference?: string; notes?: string },
+  staffId: number
+): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE payments SET reference = ?, notes = ? WHERE id = ?", [
+      params.reference || null,
+      params.notes || null,
+      id,
+    ]);
+    await logAudit(conn, {
+      staffId,
+      action: "payment.updated",
+      entity: "payment",
+      entityId: id,
+      detail: { reference: params.reference || null, notes: params.notes || null },
+    });
+  });
+}
+
 export async function archivePayment(id: number, staffId: number): Promise<void> {
   await withTransaction(async (conn) => {
     await conn.query("UPDATE payments SET archived_at = NOW() WHERE id = ?", [id]);

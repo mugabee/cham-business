@@ -6,6 +6,7 @@ import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
 import WriteOffLoanButton from "@/components/admin/WriteOffLoanButton";
+import RestructureLoanForm from "@/components/admin/RestructureLoanForm";
 import { deleteLoanAction } from "@/app/actions/loans";
 import { deletePaymentAction } from "@/app/actions/payments";
 
@@ -86,6 +87,10 @@ export default async function LoanDetailPage({
           }
         />
       </div>
+
+      {loan.status === "active" && (
+        <RestructureLoanForm loanId={loan.id} currentRatePercent={loan.interestRateMonthly * 100} />
+      )}
 
       <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
         <div>
@@ -168,14 +173,22 @@ export default async function LoanDetailPage({
                   )}
                 </td>
                 <td className="px-4 py-2">
-                  <ArchiveDeleteControls
-                    entity="payment"
-                    id={p.id}
-                    archived={Boolean(p.archivedAt)}
-                    confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
-                    deleteAction={deletePaymentAction}
-                    extraFields={{ loanId: loan.id }}
-                  />
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/admin/payments/${p.id}/edit`}
+                      className="text-sm font-medium text-gray-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <ArchiveDeleteControls
+                      entity="payment"
+                      id={p.id}
+                      archived={Boolean(p.archivedAt)}
+                      confirmMessage={`Permanently delete this ${formatRWF(p.amount)} payment? The loan's schedule will be recalculated as if it never happened. This cannot be undone.`}
+                      deleteAction={deletePaymentAction}
+                      extraFields={{ loanId: loan.id }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
