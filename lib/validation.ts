@@ -1,24 +1,41 @@
 import { z } from "zod";
 
-// Application form schema. Kept lean on purpose — collect only what's needed.
+// Public application form schema. Kept deliberately short -- everything
+// else (occupation, marital status, addresses, documents) is filled in
+// afterwards through the borrower portal, once the email is verified.
 export const applicationSchema = z.object({
   fullName: z.string().min(2, "Please enter your full name"),
   phone: z
     .string()
     .min(10, "Please enter a valid phone number")
     .regex(/^[0-9+\s-]+$/, "Phone can only contain numbers"),
-  email: z.string().email("Please enter a valid email").or(z.literal("")),
+  email: z.string().email("Please enter a valid email"),
   loanType: z.string().min(1, "Please choose a loan type"),
   amount: z
     .string()
     .min(1, "Please enter an amount")
     .regex(/^[0-9,]+$/, "Amount can only contain numbers"),
-  purposeCategory: z.string().min(1, "Please choose what the loan is for"),
-  purpose: z.string().min(5, "Tell us briefly what it's for"),
   monthlyIncome: z
     .string()
     .min(1, "Please enter your monthly income")
     .regex(/^[0-9,]+$/, "Income can only contain numbers"),
+  consent: z.literal(true, {
+    message: "Please agree so we can process your application",
+  }),
+});
+
+export type ApplicationData = z.infer<typeof applicationSchema>;
+
+export const otpRequestSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+});
+
+// Filled in by the borrower through the portal, once their application
+// exists and their email is verified.
+export const applicationDetailsSchema = z.object({
+  applicationId: z.coerce.number().int().positive(),
+  purposeCategory: z.string().min(1, "Please choose what the loan is for"),
+  purpose: z.string().min(5, "Tell us briefly what it's for"),
   desiredTermMonths: z
     .string()
     .min(1, "Please tell us how many months")
@@ -29,12 +46,16 @@ export const applicationSchema = z.object({
   }),
   workAddress: z.string().min(1, "Please tell us where you work from"),
   collateralAddress: z.string().optional().or(z.literal("")),
-  consent: z.literal(true, {
-    message: "Please agree so we can process your application",
-  }),
 });
 
-export type ApplicationData = z.infer<typeof applicationSchema>;
+export const paymentProofSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  amountClaimed: z.coerce.number().int().positive("Enter the amount you paid"),
+  method: z.enum(["mtn", "airtel", "bank"], {
+    message: "Choose a payment method",
+  }),
+  reference: z.string().optional(),
+});
 
 // Staff auth schemas.
 export const loginSchema = z.object({

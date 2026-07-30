@@ -43,11 +43,37 @@ CREATE TABLE IF NOT EXISTS borrowers (
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by       INT NULL,
   archived_at      DATETIME NULL,
-  FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL,
+  UNIQUE KEY uniq_borrowers_email (email)
 ) ENGINE=InnoDB;
 CREATE INDEX idx_borrowers_phone ON borrowers(phone);
 CREATE INDEX idx_borrowers_full_name ON borrowers(full_name);
 CREATE INDEX idx_borrowers_archived_at ON borrowers(archived_at);
+
+-- Borrower portal: passwordless (OTP-only) accounts, reusing the borrowers
+-- row itself as the "account" -- an email match is all that's needed.
+
+CREATE TABLE IF NOT EXISTS otp_codes (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  email        VARCHAR(255) NOT NULL,
+  code_hash    CHAR(64) NOT NULL,
+  purpose      VARCHAR(50) NOT NULL,
+  attempts     TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at   DATETIME NOT NULL,
+  consumed_at  DATETIME NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_otp_codes_email_purpose ON otp_codes(email, purpose);
+
+CREATE TABLE IF NOT EXISTS borrower_sessions (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  token_hash   CHAR(64) NOT NULL UNIQUE,
+  borrower_id  INT NOT NULL,
+  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at   DATETIME NOT NULL,
+  FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE INDEX idx_borrower_sessions_expires_at ON borrower_sessions(expires_at);
 
 CREATE TABLE IF NOT EXISTS applications (
   id                    INT AUTO_INCREMENT PRIMARY KEY,
@@ -145,6 +171,33 @@ CREATE TABLE IF NOT EXISTS payments (
 CREATE INDEX idx_payments_loan_id ON payments(loan_id);
 CREATE INDEX idx_payments_paid_at ON payments(paid_at);
 CREATE INDEX idx_payments_archived_at ON payments(archived_at);
+
+-- Borrower-submitted evidence of payment, reviewed by staff before it
+-- becomes a real `payments` row via the existing recordPayment() flow.
+CREATE TABLE IF NOT EXISTS payment_proofs (
+  id                 INT AUTO_INCREMENT PRIMARY KEY,
+  loan_id            INT NOT NULL,
+  borrower_id        INT NOT NULL,
+  amount_claimed     INT UNSIGNED NOT NULL,
+  method             ENUM('mtn','airtel','bank') NOT NULL,
+  reference          VARCHAR(255) NULL,
+  original_filename  VARCHAR(255) NOT NULL,
+  stored_filename    VARCHAR(255) NOT NULL,
+  mime_type          VARCHAR(100) NOT NULL,
+  file_size          INT UNSIGNED NOT NULL,
+  status             ENUM('pending','confirmed','rejected') NOT NULL DEFAULT 'pending',
+  staff_note         VARCHAR(1000) NULL,
+  reviewed_by        INT NULL,
+  reviewed_at        DATETIME NULL,
+  payment_id         INT NULL,
+  created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE,
+  FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewed_by) REFERENCES staff(id) ON DELETE SET NULL,
+  FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_payment_proofs_status ON payment_proofs(status);
+CREATE INDEX idx_payment_proofs_loan_id ON payment_proofs(loan_id);
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,

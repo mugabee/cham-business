@@ -1,7 +1,7 @@
 import "server-only";
 import type { RowDataPacket } from "mysql2/promise";
 import { pool, withTransaction } from "@/lib/db";
-import { createBorrower } from "@/lib/borrowers";
+import { createBorrower, findOrCreateBorrowerByEmail } from "@/lib/borrowers";
 import { createLoan } from "@/lib/loans";
 import { logAudit } from "@/lib/audit";
 import type { ApplicationData } from "@/lib/validation";
@@ -46,56 +46,143 @@ export type ApplicationDetail = ApplicationSummary & {
   documents: ApplicationDocument[];
 };
 
-export async function createApplicationFromPublicForm(
-  data: ApplicationData,
-  documents: Array<SavedFile & { documentType: DocumentKey }>
-): Promise<void> {
+/**
+ * Creates an application from the (trimmed) public form. The email has
+ * already been OTP-verified by this point, so a borrower identity is
+ * linked immediately rather than waiting for staff approval -- this is
+ * what lets the same person's future applications and loans all surface
+ * under one portal account.
+ */
+export async function createApplicationFromPublicForm(data: ApplicationData): Promise<number> {
   const amount = Number(data.amount.replace(/,/g, ""));
   const monthlyIncome = Number(data.monthlyIncome.replace(/,/g, ""));
   const feeAmount = calculateApplicationFee(amount);
 
-  await withTransaction(async (conn) => {
+  return withTransaction(async (conn) => {
+    const borrowerId = await findOrCreateBorrowerByEmail(
+      {
+        email: data.email,
+        fullName: data.fullName,
+        phone: data.phone,
+        monthlyIncome,
+      },
+      conn
+    );
+
     const [result] = await conn.query(
       `INSERT INTO applications
-         (full_name, phone, email, loan_type, amount_requested, purpose_category, purpose,
-          monthly_income, desired_term_months, occupation, marital_status, work_address,
-          collateral_address, fee_amount, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')`,
+         (borrower_id, full_name, phone, email, loan_type, amount_requested, purpose,
+          monthly_income, fee_amount, status)
+       VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, 'new')`,
+      [borrowerId, data.fullName, data.phone, data.email, data.loanType, amount, monthlyIncome, feeAmount]
+    );
+
+    return (result as { insertId: number }).insertId;
+  });
+}
+
+/**
+ * Fills in the fields and documents that the trimmed public form no
+ * longer collects up front -- done by the borrower through the portal,
+ * once their application exists. Ownership-checked: a borrower can only
+ * complete their own application, and only while it's still pending.
+ */
+export async function completeApplicationDetails(
+  id: number,
+  borrowerId: number,
+  params: {
+    purposeCategory: string;
+    purpose: string;
+    desiredTermMonths: number;
+    occupation: string;
+    maritalStatus: "single" | "married" | "divorced";
+    workAddress: string;
+    collateralAddress?: string;
+  },
+  documents: Array<SavedFile & { documentType: DocumentKey }>
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT borrower_id, status FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
+      [id]
+    );
+    const application = rows[0];
+    if (!application) return { error: "Application not found." };
+    if (application.borrower_id !== borrowerId) {
+      return { error: "You don't have access to this application." };
+    }
+    if (application.status !== "new" && application.status !== "reviewing") {
+      return { error: "This application can no longer be edited." };
+    }
+
+    await conn.query(
+      `UPDATE applications
+       SET purpose_category = ?, purpose = ?, desired_term_months = ?, occupation = ?,
+           marital_status = ?, work_address = ?, collateral_address = ?
+       WHERE id = ?`,
       [
-        data.fullName,
-        data.phone,
-        data.email || null,
-        data.loanType,
-        amount,
-        data.purposeCategory,
-        data.purpose,
-        monthlyIncome,
-        Number(data.desiredTermMonths),
-        data.occupation,
-        data.maritalStatus,
-        data.workAddress,
-        data.collateralAddress || null,
-        feeAmount,
+        params.purposeCategory,
+        params.purpose,
+        params.desiredTermMonths,
+        params.occupation,
+        params.maritalStatus,
+        params.workAddress,
+        params.collateralAddress || null,
+        id,
       ]
     );
-    const applicationId = (result as { insertId: number }).insertId;
 
     for (const doc of documents) {
       await conn.query(
         `INSERT INTO application_documents
            (application_id, document_type, original_filename, stored_filename, mime_type, file_size)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          applicationId,
-          doc.documentType,
-          doc.originalFilename,
-          doc.storedFilename,
-          doc.mimeType,
-          doc.fileSize,
-        ]
+        [id, doc.documentType, doc.originalFilename, doc.storedFilename, doc.mimeType, doc.fileSize]
       );
     }
+
+    await logAudit(conn, {
+      staffId: null,
+      action: "application.completed_by_borrower",
+      entity: "application",
+      entityId: id,
+      detail: { occupation: params.occupation, maritalStatus: params.maritalStatus },
+    });
+
+    return {};
   });
+}
+
+export async function listApplicationsForBorrower(
+  borrowerId: number
+): Promise<ApplicationSummary[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at
+     FROM applications
+     WHERE borrower_id = ?
+     ORDER BY submitted_at DESC`,
+    [borrowerId]
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    fullName: row.full_name,
+    phone: row.phone,
+    loanType: row.loan_type,
+    amountRequested: row.amount_requested,
+    status: row.status,
+    submittedAt: row.submitted_at,
+    archivedAt: row.archived_at,
+  }));
+}
+
+export async function getApplicationForBorrower(
+  id: number,
+  borrowerId: number
+): Promise<ApplicationDetail | null> {
+  const application = await getApplicationById(id);
+  if (!application || application.borrowerId !== borrowerId) return null;
+  return application;
 }
 
 export async function listApplications(opts: {

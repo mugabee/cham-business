@@ -5,6 +5,7 @@ import { getBorrowerById } from "@/lib/borrowers";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
+import EmailPortalAccessButton from "@/components/admin/EmailPortalAccessButton";
 import { deleteBorrowerAction } from "@/app/actions/borrowers";
 
 const loanStatusTone = {
@@ -42,6 +43,7 @@ export default async function BorrowerDetailPage({
           >
             Edit
           </Link>
+          {borrower.email && <EmailPortalAccessButton borrowerId={borrower.id} />}
           <Link
             href={`/admin/loans/new?borrowerId=${borrower.id}`}
             className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"

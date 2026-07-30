@@ -230,6 +230,47 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
   };
 }
 
+export async function listLoansForBorrower(borrowerId: number): Promise<LoanSummary[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT loans.id, loans.borrower_id, borrowers.full_name AS borrower_name,
+            loans.principal, loans.term_months, loans.status, loans.disbursed_at, loans.archived_at,
+            COALESCE((
+              SELECT SUM(total_due - amount_paid) FROM repayment_schedule
+              WHERE repayment_schedule.loan_id = loans.id AND repayment_schedule.status <> 'paid'
+            ), 0) AS outstanding,
+            EXISTS (
+              SELECT 1 FROM repayment_schedule
+              WHERE repayment_schedule.loan_id = loans.id
+                AND repayment_schedule.due_date < CURDATE()
+                AND repayment_schedule.status <> 'paid'
+            ) AS is_overdue
+     FROM loans
+     JOIN borrowers ON borrowers.id = loans.borrower_id
+     WHERE loans.borrower_id = ? AND loans.archived_at IS NULL
+     ORDER BY loans.created_at DESC`,
+    [borrowerId]
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    borrowerId: row.borrower_id,
+    borrowerName: row.borrower_name,
+    principal: row.principal,
+    termMonths: row.term_months,
+    status: row.status,
+    outstanding: Number(row.outstanding),
+    isOverdue: Boolean(row.is_overdue),
+    disbursedAt: row.disbursed_at,
+    archivedAt: row.archived_at,
+  }));
+}
+
+export async function getLoanForBorrower(id: number, borrowerId: number): Promise<LoanDetail | null> {
+  const loan = await getLoanById(id);
+  if (!loan || loan.borrowerId !== borrowerId) return null;
+  return loan;
+}
+
 export async function listActiveLoansForPicker(): Promise<
   { id: number; borrowerName: string; outstanding: number }[]
 > {

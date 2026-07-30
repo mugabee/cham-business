@@ -188,6 +188,40 @@ export async function updateBorrower(
   });
 }
 
+/**
+ * Looks up a borrower by their (unique) verified email, creating one if
+ * none exists yet. Used at OTP-verified application submission, so a
+ * portal identity exists from the very first application, not just at
+ * staff approval time.
+ */
+export async function findOrCreateBorrowerByEmail(
+  params: {
+    email: string;
+    fullName: string;
+    phone: string;
+    monthlyIncome: number;
+  },
+  conn?: PoolConnection
+): Promise<number> {
+  const db: Pool | PoolConnection = conn ?? pool;
+  const [rows] = await db.query<RowDataPacket[]>(
+    "SELECT id FROM borrowers WHERE email = ? LIMIT 1",
+    [params.email]
+  );
+  if (rows[0]) return rows[0].id;
+
+  return createBorrower(
+    {
+      fullName: params.fullName,
+      phone: params.phone,
+      email: params.email,
+      monthlyIncome: params.monthlyIncome,
+      createdBy: null,
+    },
+    conn
+  );
+}
+
 export async function archiveBorrower(id: number, staffId: number): Promise<void> {
   await withTransaction(async (conn) => {
     await conn.query("UPDATE borrowers SET archived_at = NOW() WHERE id = ?", [id]);

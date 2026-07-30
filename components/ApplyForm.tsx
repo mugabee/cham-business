@@ -2,59 +2,72 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { applicationSchema, type ApplicationData } from "@/lib/validation";
 import { loanProducts } from "@/lib/site";
-import { visibleDocumentTypes, calculateApplicationFee, PURPOSE_CATEGORIES } from "@/lib/documents";
 
 export default function ApplyForm() {
-  const [submitted, setSubmitted] = useState(false);
+  const [stage, setStage] = useState<"form" | "otp" | "done">("form");
+  const [otpCode, setOtpCode] = useState("");
   const [serverError, setServerError] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const {
     register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
+    trigger,
+    getValues,
+    formState: { errors },
   } = useForm<ApplicationData>({
     resolver: zodResolver(applicationSchema),
   });
 
-  const loanType = watch("loanType");
-  const maritalStatus = watch("maritalStatus");
-  const amount = watch("amount");
-
-  const numericAmount = Number((amount || "").replace(/,/g, ""));
-  const fee = calculateApplicationFee(numericAmount);
-  const documents = visibleDocumentTypes(loanType || "", maritalStatus);
-
-  async function onSubmit(_data: ApplicationData, event?: React.BaseSyntheticEvent) {
+  async function requestCode() {
     setServerError("");
-    try {
-      const form = (event?.target as HTMLFormElement) ?? formRef.current;
-      if (!form) throw new Error("Form not found");
-      const formData = new FormData(form);
+    const valid = await trigger();
+    if (!valid) return;
 
-      const res = await fetch("/api/apply", {
+    setSendingOtp(true);
+    try {
+      const res = await fetch("/api/apply/request-otp", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: getValues("email") }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || "Something went wrong");
-      }
-      setSubmitted(true);
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error || "Couldn't send a code. Please try again.");
+      setStage("otp");
     } catch (err) {
-      setServerError(
-        err instanceof Error && err.message !== "Something went wrong"
-          ? err.message
-          : "We couldn't send your application just now. Please try again, or call us."
-      );
+      setServerError(err instanceof Error ? err.message : "Couldn't send a code. Please try again.");
+    } finally {
+      setSendingOtp(false);
     }
   }
 
-  if (submitted) {
+  async function verifyAndSubmit() {
+    setServerError("");
+    if (otpCode.trim().length !== 6) {
+      setServerError("Enter the 6-digit code we emailed you.");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const res = await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...getValues(), otpCode }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.error || "Something went wrong");
+      setStage("done");
+    } catch (err) {
+      setServerError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  if (stage === "done") {
     return (
       <div className="rounded-3xl border border-[var(--color-line)] bg-white p-10 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--color-brand-wash)]">
@@ -66,9 +79,9 @@ export default function ApplyForm() {
           Application received
         </h2>
         <p className="mx-auto mt-3 max-w-md text-[var(--color-ink-soft)]">
-          Thank you. Our team will review your details and get back to you within
-          24 hours, usually sooner. We may call to confirm a few things, including
-          payment of the application fee shown above.
+          Thank you. Check your email for a link to your account, where you can
+          finish your application (a few more details and your documents) and
+          later track your loan and payments.
         </p>
       </div>
     );
@@ -78,16 +91,56 @@ export default function ApplyForm() {
     "w-full rounded-xl border border-[var(--color-line)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition-colors focus:border-[var(--color-brand)]";
   const label = "block text-sm font-semibold text-[var(--color-ink)]";
   const errText = "mt-1 text-sm text-[var(--color-accent-deep)]";
-  const fileField = `${field} file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--color-brand-wash)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--color-brand)]`;
+
+  if (stage === "otp") {
+    return (
+      <div className="space-y-5">
+        <p className="text-[var(--color-ink-soft)]">
+          We sent a 6-digit verification code to <strong>{getValues("email")}</strong>.
+          Enter it below to confirm this is your email and submit your application.
+        </p>
+        <div>
+          <label htmlFor="otpCode" className={label}>Verification code</label>
+          <input
+            id="otpCode"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+            inputMode="numeric"
+            className={`${field} mt-1.5 tracking-[0.5em] text-center text-xl`}
+            placeholder="000000"
+            maxLength={6}
+          />
+        </div>
+
+        {serverError && (
+          <p className="rounded-xl bg-[var(--color-accent)]/15 px-4 py-3 text-sm text-[var(--color-accent-deep)]">
+            {serverError}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={verifyAndSubmit}
+          disabled={verifying}
+          className="w-full rounded-full bg-[var(--color-brand)] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
+        >
+          {verifying ? "Verifying..." : "Verify & submit application"}
+        </button>
+
+        <div className="flex justify-between text-sm">
+          <button type="button" onClick={() => setStage("form")} className="text-[var(--color-ink-soft)] hover:underline">
+            ← Change details
+          </button>
+          <button type="button" onClick={requestCode} disabled={sendingOtp} className="text-[var(--color-brand)] hover:underline">
+            {sendingOtp ? "Sending..." : "Resend code"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-5"
-      noValidate
-      encType="multipart/form-data"
-    >
+    <form onSubmit={(e) => { e.preventDefault(); requestCode(); }} className="space-y-5" noValidate>
       <div>
         <label htmlFor="fullName" className={label}>Full name</label>
         <input id="fullName" {...register("fullName")} className={`${field} mt-1.5`} placeholder="As it appears on your ID" />
@@ -101,7 +154,7 @@ export default function ApplyForm() {
           {errors.phone && <p className={errText}>{errors.phone.message}</p>}
         </div>
         <div>
-          <label htmlFor="email" className={label}>Email <span className="font-normal text-[var(--color-ink-soft)]">(optional)</span></label>
+          <label htmlFor="email" className={label}>Email</label>
           <input id="email" {...register("email")} className={`${field} mt-1.5`} placeholder="you@example.com" />
           {errors.email && <p className={errText}>{errors.email.message}</p>}
         </div>
@@ -125,110 +178,19 @@ export default function ApplyForm() {
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor="monthlyIncome" className={label}>Monthly income (RWF)</label>
-          <input id="monthlyIncome" {...register("monthlyIncome")} className={`${field} mt-1.5`} placeholder="e.g. 350,000" />
-          {errors.monthlyIncome && <p className={errText}>{errors.monthlyIncome.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="desiredTermMonths" className={label}>For how long will the loan be repaid? (months)</label>
-          <input id="desiredTermMonths" {...register("desiredTermMonths")} className={`${field} mt-1.5`} placeholder="e.g. 6" />
-          {errors.desiredTermMonths && <p className={errText}>{errors.desiredTermMonths.message}</p>}
-        </div>
-      </div>
-
       <div>
-        <label htmlFor="purposeCategory" className={label}>What will the loan be used for?</label>
-        <select id="purposeCategory" {...register("purposeCategory")} className={`${field} mt-1.5`} defaultValue="">
-          <option value="" disabled>Choose one</option>
-          {PURPOSE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        {errors.purposeCategory && <p className={errText}>{errors.purposeCategory.message}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="purpose" className={label}>
-          Tell us more (or if you chose &ldquo;Other&rdquo; above)
-        </label>
-        <textarea id="purpose" {...register("purpose")} rows={3} className={`${field} mt-1.5 resize-none`} placeholder="A sentence or two is fine" />
-        {errors.purpose && <p className={errText}>{errors.purpose.message}</p>}
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor="occupation" className={label}>What do you do? (occupation / job)</label>
-          <input id="occupation" {...register("occupation")} className={`${field} mt-1.5`} placeholder="e.g. Market trader" />
-          {errors.occupation && <p className={errText}>{errors.occupation.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="maritalStatus" className={label}>Marital status</label>
-          <select id="maritalStatus" {...register("maritalStatus")} className={`${field} mt-1.5`} defaultValue="">
-            <option value="" disabled>Choose one</option>
-            <option value="single">Single</option>
-            <option value="married">Married</option>
-            <option value="divorced">Divorced</option>
-          </select>
-          {errors.maritalStatus && <p className={errText}>{errors.maritalStatus.message}</p>}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="workAddress" className={label}>Address where you work from</label>
-        <input id="workAddress" {...register("workAddress")} className={`${field} mt-1.5`} placeholder="e.g. Kicukiro Modern Market, Kigali" />
-        {errors.workAddress && <p className={errText}>{errors.workAddress.message}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="collateralAddress" className={label}>
-          Collateral asset location/address <span className="font-normal text-[var(--color-ink-soft)]">(optional, if you're offering collateral)</span>
-        </label>
-        <input id="collateralAddress" {...register("collateralAddress")} className={`${field} mt-1.5`} placeholder="Where is the collateral located?" />
-        {errors.collateralAddress && <p className={errText}>{errors.collateralAddress.message}</p>}
-      </div>
-
-      <div className="rounded-xl border border-[var(--color-line)] p-4">
-        <p className="text-sm font-semibold text-[var(--color-ink)]">Application fee</p>
-        <p className="mt-1 text-2xl font-bold text-[var(--color-brand)]">
-          RWF {fee.toLocaleString()}
-        </p>
-        <p className="mt-1 text-xs text-[var(--color-ink-soft)]">
-          1% of the requested amount + 18% VAT, minimum RWF 30,000. Our team will
-          contact you with payment instructions before your application is
-          processed.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <p className={label}>Supporting documents</p>
-        {documents.map((doc) => (
-          <div key={doc.key}>
-            <label htmlFor={doc.key} className="block text-sm text-[var(--color-ink)]">
-              {doc.label}
-              {!doc.required && <span className="font-normal text-[var(--color-ink-soft)]"> (optional)</span>}
-            </label>
-            <input
-              id={doc.key}
-              name={doc.key}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              required={doc.required}
-              className={`${fileField} mt-1.5`}
-            />
-          </div>
-        ))}
+        <label htmlFor="monthlyIncome" className={label}>Monthly income (RWF)</label>
+        <input id="monthlyIncome" {...register("monthlyIncome")} className={`${field} mt-1.5`} placeholder="e.g. 350,000" />
+        {errors.monthlyIncome && <p className={errText}>{errors.monthlyIncome.message}</p>}
       </div>
 
       <div className="rounded-xl bg-[var(--color-paper-deep)] p-4">
         <label className="flex gap-3 text-sm text-[var(--color-ink-soft)]">
           <input type="checkbox" {...register("consent")} className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-brand)]" />
           <span>
-            I agree to Cham Business Ltd&apos;s terms and conditions, understand
-            the application fee shown above, and agree that my information may
-            be used to assess and contact me about my application. I understand
-            this is an enquiry, not a guarantee of a loan.
+            I agree that Cham Business Ltd may use the information above to assess
+            and contact me about my application. I understand this is an enquiry,
+            not a guarantee of a loan.
           </span>
         </label>
         {errors.consent && <p className={errText}>{errors.consent.message}</p>}
@@ -242,15 +204,15 @@ export default function ApplyForm() {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={sendingOtp}
         className="w-full rounded-full bg-[var(--color-brand)] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
       >
-        {isSubmitting ? "Sending..." : "Submit application"}
+        {sendingOtp ? "Sending code..." : "Send verification code"}
       </button>
 
       <p className="text-center text-xs text-[var(--color-ink-soft)]">
-        We never share your details with third parties for marketing. Your
-        information is used only to process your application.
+        We&apos;ll email you a 6-digit code to confirm it&apos;s really you before
+        your application is submitted.
       </p>
     </form>
   );

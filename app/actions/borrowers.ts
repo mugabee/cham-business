@@ -2,10 +2,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { createBorrower, updateBorrower, deleteBorrower } from "@/lib/borrowers";
+import { createBorrower, updateBorrower, deleteBorrower, getBorrowerById } from "@/lib/borrowers";
 import { logAudit } from "@/lib/audit";
 import { pool } from "@/lib/db";
 import { borrowerSchema } from "@/lib/validation";
+import { sendPortalAccessEmail } from "@/lib/mailer";
 
 export async function createBorrowerAction(
   _prevState: { error?: string } | undefined,
@@ -69,6 +70,34 @@ export async function updateBorrowerAction(
 
   revalidatePath(`/admin/borrowers/${id}`);
   redirect(`/admin/borrowers/${id}`);
+}
+
+export async function emailPortalAccessAction(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await verifySession();
+  const id = Number(formData.get("id"));
+
+  const borrower = await getBorrowerById(id);
+  if (!borrower) {
+    return { error: "Borrower not found." };
+  }
+  if (!borrower.email) {
+    return { error: "This borrower has no email on file -- add one first." };
+  }
+
+  await sendPortalAccessEmail(borrower.email, borrower.fullName);
+
+  await logAudit(pool, {
+    staffId: session.userId,
+    action: "borrower.portal_access_emailed",
+    entity: "borrower",
+    entityId: id,
+    detail: { email: borrower.email },
+  });
+
+  return { success: true };
 }
 
 export async function deleteBorrowerAction(

@@ -1,0 +1,40 @@
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { verifyBorrowerSession } from "@/lib/borrower-dal";
+import { getApplicationForBorrower } from "@/lib/applications";
+import { formatRWF } from "@/lib/format";
+import ApplicationDetailsForm from "@/components/portal/ApplicationDetailsForm";
+
+export const dynamic = "force-dynamic";
+
+export default async function PortalApplicationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await verifyBorrowerSession();
+  const { id } = await params;
+  const application = await getApplicationForBorrower(Number(id), session.borrowerId);
+
+  if (!application) notFound();
+  if (application.status !== "new" && application.status !== "reviewing") {
+    redirect("/portal");
+  }
+
+  return (
+    <div>
+      <Link href="/portal" className="text-sm text-amber-700 hover:underline">
+        ← Back
+      </Link>
+      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-1">Complete your application</h1>
+      <p className="text-sm text-gray-500 mb-6">
+        {application.loanType} — {formatRWF(application.amountRequested)}
+      </p>
+      <ApplicationDetailsForm
+        applicationId={application.id}
+        loanType={application.loanType}
+        alreadyUploadedTypes={application.documents.map((d) => d.documentType)}
+      />
+    </div>
+  );
+}

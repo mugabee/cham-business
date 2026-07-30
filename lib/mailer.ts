@@ -32,6 +32,33 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   });
 }
 
+export async function sendOtpEmail(to: string, code: string, purpose: "apply" | "portal_login") {
+  const context =
+    purpose === "apply"
+      ? "to confirm this email address for your loan application"
+      : "to log in to your Cham Business account";
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `Your Cham Business verification code: ${code}`,
+    text: `Your verification code is ${code}. Enter this ${context}. It expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email.`,
+    html: `<p>Your verification code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:4px;">${code}</p><p>Enter this ${context}. It expires in 10 minutes.</p><p>If you didn't request this, you can ignore this email.</p>`,
+  });
+}
+
+export async function sendPortalAccessEmail(to: string, fullName: string) {
+  const loginUrl = `${process.env.APP_URL}/portal/login`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: "Your Cham Business account is ready",
+    text: `Dear ${fullName},\n\nYou can now track your loan and payments online. Visit ${loginUrl} and enter this email address to receive a one-time login code -- no password needed.\n\nCham Business Ltd`,
+    html: `<p>Dear ${fullName},</p><p>You can now track your loan and payments online. Visit <a href="${loginUrl}">${loginUrl}</a> and enter this email address to receive a one-time login code -- no password needed.</p><p>Cham Business Ltd</p>`,
+  });
+}
+
 export async function sendOverdueReminderEmail(
   to: string,
   borrowerName: string,
