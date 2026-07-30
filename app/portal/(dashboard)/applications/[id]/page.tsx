@@ -17,7 +17,7 @@ export default async function PortalApplicationPage({
   const application = await getApplicationForBorrower(Number(id), session.borrowerId);
 
   if (!application) notFound();
-  if (application.status !== "new" && application.status !== "reviewing") {
+  if (application.status !== "approved") {
     redirect("/portal");
   }
 

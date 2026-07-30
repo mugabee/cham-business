@@ -2,8 +2,22 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
-import { approveApplication, rejectApplication, updateApplication, deleteApplication } from "@/lib/applications";
-import { approveApplicationSchema, rejectApplicationSchema, updateApplicationSchema } from "@/lib/validation";
+import {
+  approveApplication,
+  rejectApplication,
+  updateApplication,
+  deleteApplication,
+  completeApplicationDetailsByStaff,
+  getApplicationById,
+} from "@/lib/applications";
+import {
+  approveApplicationSchema,
+  rejectApplicationSchema,
+  updateApplicationSchema,
+  applicationDetailsSchema,
+} from "@/lib/validation";
+import { visibleDocumentTypes, type DocumentKey } from "@/lib/documents";
+import { saveUploadedFile } from "@/lib/uploads";
 
 export async function approveApplicationAction(
   _prevState: { error?: string } | undefined,
@@ -74,6 +88,72 @@ export async function updateApplicationAction(
 
   revalidatePath(`/admin/applications/${applicationId}`);
   redirect(`/admin/applications/${applicationId}`);
+}
+
+export async function completeApplicationDetailsByStaffAction(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await verifySession();
+
+  const result = applicationDetailsSchema.safeParse({
+    applicationId: formData.get("applicationId"),
+    purposeCategory: formData.get("purposeCategory"),
+    purpose: formData.get("purpose"),
+    desiredTermMonths: formData.get("desiredTermMonths"),
+    occupation: formData.get("occupation"),
+    maritalStatus: formData.get("maritalStatus"),
+    workAddress: formData.get("workAddress"),
+    collateralAddress: formData.get("collateralAddress") || "",
+  });
+
+  if (!result.success) {
+    return { error: result.error.issues[0]?.message ?? "Invalid submission." };
+  }
+
+  const application = await getApplicationById(result.data.applicationId);
+  if (!application) {
+    return { error: "Application not found." };
+  }
+
+  const alreadyUploaded = new Set(application.documents.map((d) => d.documentType));
+  const expectedDocs = visibleDocumentTypes(application.loanType, result.data.maritalStatus).filter(
+    (doc) => !alreadyUploaded.has(doc.key)
+  );
+
+  const documents: Array<{ documentType: DocumentKey } & Awaited<ReturnType<typeof saveUploadedFile>>> = [];
+
+  for (const doc of expectedDocs) {
+    const file = formData.get(doc.key);
+    if (file instanceof File && file.size > 0) {
+      const saved = await saveUploadedFile(file);
+      documents.push({ documentType: doc.key, ...saved });
+    } else if (doc.required) {
+      return { error: `Please attach: ${doc.label}` };
+    }
+  }
+
+  const { error } = await completeApplicationDetailsByStaff(
+    result.data.applicationId,
+    session.userId,
+    {
+      purposeCategory: result.data.purposeCategory,
+      purpose: result.data.purpose,
+      desiredTermMonths: Number(result.data.desiredTermMonths),
+      occupation: result.data.occupation,
+      maritalStatus: result.data.maritalStatus,
+      workAddress: result.data.workAddress,
+      collateralAddress: result.data.collateralAddress,
+    },
+    documents
+  );
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath(`/admin/applications/${result.data.applicationId}`);
+  return { success: true };
 }
 
 export async function deleteApplicationAction(

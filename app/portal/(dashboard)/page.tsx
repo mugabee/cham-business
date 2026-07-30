@@ -28,7 +28,7 @@ export default async function PortalDashboardPage() {
   ]);
 
   const pendingApplications = applications.filter(
-    (a) => a.status === "new" || a.status === "reviewing"
+    (a) => a.status === "approved" && !a.detailsCompleted
   );
 
   return (

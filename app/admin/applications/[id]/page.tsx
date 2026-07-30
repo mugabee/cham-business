@@ -7,6 +7,7 @@ import StatusBadge from "@/components/admin/StatusBadge";
 import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
 import { deleteApplicationAction } from "@/app/actions/applications";
 import ApplicationActions from "./ApplicationActions";
+import StaffApplicationDetailsForm from "@/components/admin/StaffApplicationDetailsForm";
 
 const statusTone = {
   new: "warning",
@@ -171,6 +172,16 @@ export default async function ApplicationDetailPage({
             applicationId={application.id}
             amountRequested={application.amountRequested}
             isNewBorrower={!application.borrowerId}
+          />
+        </div>
+      )}
+
+      {application.status === "approved" && !application.occupation && (
+        <div className="mt-6">
+          <StaffApplicationDetailsForm
+            applicationId={application.id}
+            loanType={application.loanType}
+            alreadyUploadedTypes={application.documents.map((d) => d.documentType)}
           />
         </div>
       )}

@@ -17,6 +17,7 @@ export type ApplicationSummary = {
   status: "new" | "reviewing" | "approved" | "rejected";
   submittedAt: Date;
   archivedAt: Date | null;
+  detailsCompleted: boolean;
 };
 
 export type ApplicationDocument = {
@@ -87,34 +88,23 @@ export async function createApplicationFromPublicForm(data: ApplicationData): Pr
  * once their application exists. Ownership-checked: a borrower can only
  * complete their own application, and only while it's still pending.
  */
-export async function completeApplicationDetails(
-  id: number,
-  borrowerId: number,
-  params: {
-    purposeCategory: string;
-    purpose: string;
-    desiredTermMonths: number;
-    occupation: string;
-    maritalStatus: "single" | "married" | "divorced";
-    workAddress: string;
-    collateralAddress?: string;
-  },
-  documents: Array<SavedFile & { documentType: DocumentKey }>
-): Promise<{ error?: string }> {
-  return withTransaction(async (conn) => {
-    const [rows] = await conn.query<RowDataPacket[]>(
-      "SELECT borrower_id, status FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
-      [id]
-    );
-    const application = rows[0];
-    if (!application) return { error: "Application not found." };
-    if (application.borrower_id !== borrowerId) {
-      return { error: "You don't have access to this application." };
-    }
-    if (application.status !== "new" && application.status !== "reviewing") {
-      return { error: "This application can no longer be edited." };
-    }
+type ApplicationDetailsParams = {
+  purposeCategory: string;
+  purpose: string;
+  desiredTermMonths: number;
+  occupation: string;
+  maritalStatus: "single" | "married" | "divorced";
+  workAddress: string;
+  collateralAddress?: string;
+};
 
+async function saveApplicationDetails(
+  id: number,
+  params: ApplicationDetailsParams,
+  documents: Array<SavedFile & { documentType: DocumentKey }>,
+  audit: { staffId: number | null; action: string }
+): Promise<void> {
+  await withTransaction(async (conn) => {
     await conn.query(
       `UPDATE applications
        SET purpose_category = ?, purpose = ?, desired_term_months = ?, occupation = ?,
@@ -142,22 +132,82 @@ export async function completeApplicationDetails(
     }
 
     await logAudit(conn, {
-      staffId: null,
-      action: "application.completed_by_borrower",
+      staffId: audit.staffId,
+      action: audit.action,
       entity: "application",
       entityId: id,
       detail: { occupation: params.occupation, maritalStatus: params.maritalStatus },
     });
-
-    return {};
   });
+}
+
+/**
+ * Filled in by the borrower via the portal. Only allowed once the loan has
+ * been approved -- staff can approve on the basic info alone, and full
+ * KYC-style detail/documents get collected afterward, by whichever of
+ * borrower-self-service or staff-on-their-behalf actually happens (some
+ * customers aren't comfortable filling this in online themselves).
+ */
+export async function completeApplicationDetails(
+  id: number,
+  borrowerId: number,
+  params: ApplicationDetailsParams,
+  documents: Array<SavedFile & { documentType: DocumentKey }>
+): Promise<{ error?: string }> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT borrower_id, status FROM applications WHERE id = ? LIMIT 1",
+    [id]
+  );
+  const application = rows[0];
+  if (!application) return { error: "Application not found." };
+  if (application.borrower_id !== borrowerId) {
+    return { error: "You don't have access to this application." };
+  }
+  if (application.status !== "approved") {
+    return { error: "This application hasn't been approved yet." };
+  }
+
+  await saveApplicationDetails(id, params, documents, {
+    staffId: null,
+    action: "application.completed_by_borrower",
+  });
+  return {};
+}
+
+/**
+ * Same as completeApplicationDetails, but for staff filling it in on the
+ * applicant's behalf (e.g. over the phone) -- no ownership check, since
+ * any staff can act on any application, matching the rest of the app.
+ */
+export async function completeApplicationDetailsByStaff(
+  id: number,
+  staffId: number,
+  params: ApplicationDetailsParams,
+  documents: Array<SavedFile & { documentType: DocumentKey }>
+): Promise<{ error?: string }> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    "SELECT status FROM applications WHERE id = ? LIMIT 1",
+    [id]
+  );
+  const application = rows[0];
+  if (!application) return { error: "Application not found." };
+  if (application.status !== "approved") {
+    return { error: "This application hasn't been approved yet." };
+  }
+
+  await saveApplicationDetails(id, params, documents, {
+    staffId,
+    action: "application.completed_by_staff",
+  });
+  return {};
 }
 
 export async function listApplicationsForBorrower(
   borrowerId: number
 ): Promise<ApplicationSummary[]> {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at
+    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at,
+            (occupation IS NOT NULL) AS details_completed
      FROM applications
      WHERE borrower_id = ?
      ORDER BY submitted_at DESC`,
@@ -173,6 +223,7 @@ export async function listApplicationsForBorrower(
     status: row.status,
     submittedAt: row.submitted_at,
     archivedAt: row.archived_at,
+    detailsCompleted: Boolean(row.details_completed),
   }));
 }
 
@@ -199,7 +250,8 @@ export async function listApplications(opts: {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at
+    `SELECT id, full_name, phone, loan_type, amount_requested, status, submitted_at, archived_at,
+            (occupation IS NOT NULL) AS details_completed
      FROM applications
      ${where}
      ORDER BY submitted_at DESC`,
@@ -215,6 +267,7 @@ export async function listApplications(opts: {
     status: row.status,
     submittedAt: row.submitted_at,
     archivedAt: row.archived_at,
+    detailsCompleted: Boolean(row.details_completed),
   }));
 }
 
@@ -270,6 +323,7 @@ export async function getApplicationById(
     reviewedAt: row.reviewed_at,
     notes: row.notes,
     archivedAt: row.archived_at,
+    detailsCompleted: Boolean(row.occupation),
     documents: documentRows.map((d) => ({
       id: d.id,
       documentType: d.document_type,
