@@ -19,7 +19,7 @@ export default async function AnalyticsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Analytics</h1>
+      <h1 className="text-2xl font-semibold text-ink mb-6">Analytics</h1>
       <AnalyticsCharts
         newLoans={newLoans}
         portfolioValue={portfolioValue}

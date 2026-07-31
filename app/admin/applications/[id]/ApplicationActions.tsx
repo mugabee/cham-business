@@ -22,8 +22,8 @@ export default function ApplicationActions({
 
   const today = new Date().toISOString().slice(0, 10);
   const field =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500";
-  const label = "block text-sm font-medium text-gray-700 mb-1";
+    "w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const label = "block text-sm font-medium text-ink mb-1";
 
   if (approveState?.success) {
     return (
@@ -35,7 +35,7 @@ export default function ApplicationActions({
 
   if (rejectState?.success) {
     return (
-      <p className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
+      <p className="rounded-lg bg-paper-deep border border-line px-4 py-3 text-sm text-ink-soft">
         Application rejected.
       </p>
     );
@@ -43,11 +43,11 @@ export default function ApplicationActions({
 
   return (
     <div className="space-y-6">
-      <form action={approveAction} className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
-        <h2 className="font-semibold text-gray-900">Approve &amp; create loan</h2>
+      <form action={approveAction} className="bg-white rounded-2xl border border-line p-5 space-y-4">
+        <h2 className="font-semibold text-ink">Approve &amp; create loan</h2>
         <input type="hidden" name="applicationId" value={applicationId} />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={label}>Approved amount (RWF)</label>
             <input
@@ -71,7 +71,7 @@ export default function ApplicationActions({
         </div>
 
         {isNewBorrower && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={label}>National ID</label>
               <input name="nationalId" className={field} placeholder="Verified in person" />
@@ -93,14 +93,14 @@ export default function ApplicationActions({
         <button
           type="submit"
           disabled={approvePending}
-          className="rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
+          className="rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
         >
           {approvePending ? "Approving…" : "Approve & create loan"}
         </button>
       </form>
 
-      <form action={rejectAction} className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
-        <h2 className="font-semibold text-gray-900">Reject</h2>
+      <form action={rejectAction} className="bg-white rounded-2xl border border-line p-5 space-y-4">
+        <h2 className="font-semibold text-ink">Reject</h2>
         <input type="hidden" name="applicationId" value={applicationId} />
         <div>
           <label className={label}>Reason</label>
@@ -110,7 +110,7 @@ export default function ApplicationActions({
         <button
           type="submit"
           disabled={rejectPending}
-          className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-60 text-gray-700 text-sm font-medium px-4 py-2 transition-colors"
+          className="rounded-lg bg-white border border-line hover:bg-paper-deep disabled:opacity-60 text-ink text-sm font-medium px-4 py-2 transition-colors"
         >
           {rejectPending ? "Rejecting…" : "Reject"}
         </button>

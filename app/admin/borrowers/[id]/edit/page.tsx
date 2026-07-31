@@ -17,10 +17,10 @@ export default async function EditBorrowerPage({
 
   return (
     <div>
-      <Link href={`/admin/borrowers/${borrower.id}`} className="text-sm text-amber-700 hover:underline">
+      <Link href={`/admin/borrowers/${borrower.id}`} className="text-sm text-brand hover:underline">
         ← Back to borrower
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-6">Edit {borrower.fullName}</h1>
+      <h1 className="text-2xl font-semibold text-ink mt-3 mb-6">Edit {borrower.fullName}</h1>
       <BorrowerEditForm borrower={borrower} />
     </div>
   );

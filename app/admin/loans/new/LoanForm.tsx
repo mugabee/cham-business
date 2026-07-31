@@ -13,11 +13,11 @@ export default function LoanForm({
   const today = new Date().toISOString().slice(0, 10);
 
   const field =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500";
-  const label = "block text-sm font-medium text-gray-700 mb-1";
+    "w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const label = "block text-sm font-medium text-ink mb-1";
 
   return (
-    <form action={action} className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4 max-w-lg">
+    <form action={action} className="bg-white rounded-2xl border border-line p-5 space-y-4 max-w-lg">
       <div>
         <label className={label}>Borrower</label>
         <select
@@ -37,7 +37,7 @@ export default function LoanForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={label}>Principal (RWF)</label>
           <input name="principal" type="number" min={1} required className={field} />
@@ -58,7 +58,7 @@ export default function LoanForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
+        className="rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
       >
         {pending ? "Creating…" : "Create loan"}
       </button>

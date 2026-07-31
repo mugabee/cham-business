@@ -54,7 +54,7 @@ export default function ArchiveDeleteControls({
           <button
             type="submit"
             disabled={restorePending}
-            className="text-xs font-medium text-amber-700 hover:underline disabled:opacity-50"
+            className="text-xs font-medium text-brand hover:underline disabled:opacity-50"
           >
             {restorePending ? "Restoring…" : "Restore"}
           </button>
@@ -66,7 +66,7 @@ export default function ArchiveDeleteControls({
           <button
             type="submit"
             disabled={archivePending}
-            className="text-xs font-medium text-gray-500 hover:underline disabled:opacity-50"
+            className="text-xs font-medium text-ink-soft hover:underline disabled:opacity-50"
           >
             {archivePending ? "Archiving…" : "Archive"}
           </button>
@@ -91,7 +91,7 @@ export default function ArchiveDeleteControls({
 
       {error && <span className="text-xs text-red-600">{error}</span>}
       {!deletePending && deleteDisabled && deleteDisabledReason && (
-        <span className="text-xs text-gray-400">{deleteDisabledReason}</span>
+        <span className="text-xs text-ink-soft">{deleteDisabledReason}</span>
       )}
     </div>
   );

@@ -8,7 +8,7 @@ export default function PaymentProofReviewControls({ id }: { id: number }) {
   const [showReject, setShowReject] = useState(false);
 
   if (confirmState?.success || rejectState?.success) {
-    return <span className="text-sm text-gray-400">Reviewed</span>;
+    return <span className="text-sm text-ink-soft">Reviewed</span>;
   }
 
   function handleConfirmSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -26,14 +26,14 @@ export default function PaymentProofReviewControls({ id }: { id: number }) {
           rows={2}
           required
           placeholder="Reason for rejecting"
-          className="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+          className="w-full rounded border border-line px-2 py-1 text-xs"
         />
         {rejectState?.error && <p className="text-xs text-red-600">{rejectState.error}</p>}
         <div className="flex gap-3">
           <button type="submit" disabled={rejectPending} className="text-xs font-medium text-red-600 hover:underline">
             {rejectPending ? "Rejecting…" : "Confirm reject"}
           </button>
-          <button type="button" onClick={() => setShowReject(false)} className="text-xs text-gray-400 hover:underline">
+          <button type="button" onClick={() => setShowReject(false)} className="text-xs text-ink-soft hover:underline">
             Cancel
           </button>
         </div>

@@ -14,10 +14,10 @@ export default async function NewPaymentPage({
 
   return (
     <div>
-      <Link href="/admin/payments" className="text-sm text-amber-700 hover:underline">
+      <Link href="/admin/payments" className="text-sm text-brand hover:underline">
         ← Back to payments
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-6">Record payment</h1>
+      <h1 className="text-2xl font-semibold text-ink mt-3 mb-6">Record payment</h1>
       <PaymentForm loans={loans} preselectedLoanId={loanId ? Number(loanId) : undefined} />
     </div>
   );

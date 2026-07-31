@@ -20,12 +20,12 @@ export default function ApplicationDetailsForm({
   );
 
   const field =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500";
-  const label = "block text-sm font-medium text-gray-700 mb-1";
-  const fileField = `${field} file:mr-3 file:rounded file:border-0 file:bg-amber-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-amber-700`;
+    "w-full rounded-lg border border-line px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const label = "block text-sm font-medium text-ink mb-1";
+  const fileField = `${field} file:mr-3 file:rounded file:border-0 file:bg-brand-wash file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand`;
 
   return (
-    <form action={action} className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
+    <form action={action} className="bg-white rounded-2xl border border-line p-5 space-y-4">
       <input type="hidden" name="applicationId" value={applicationId} />
 
       <div>
@@ -43,7 +43,7 @@ export default function ApplicationDetailsForm({
         <textarea name="purpose" rows={3} required className={field} placeholder="A sentence or two is fine" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={label}>Repayment period (months)</label>
           <input name="desiredTermMonths" type="number" min={1} required className={field} />
@@ -54,7 +54,7 @@ export default function ApplicationDetailsForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={label}>Marital status</label>
           <select
@@ -78,19 +78,19 @@ export default function ApplicationDetailsForm({
 
       <div>
         <label className={label}>
-          Collateral location <span className="font-normal text-gray-400">(optional)</span>
+          Collateral location <span className="font-normal text-ink-soft">(optional)</span>
         </label>
         <input name="collateralAddress" className={field} />
       </div>
 
       {documents.length > 0 && (
-        <div className="space-y-4 pt-2 border-t border-gray-100">
+        <div className="space-y-4 pt-2 border-t border-line">
           <p className={label}>Supporting documents</p>
           {documents.map((doc) => (
             <div key={doc.key}>
-              <label className="block text-sm text-gray-700">
+              <label className="block text-sm text-ink">
                 {doc.label}
-                {!doc.required && <span className="font-normal text-gray-400"> (optional)</span>}
+                {!doc.required && <span className="font-normal text-ink-soft"> (optional)</span>}
               </label>
               <input
                 name={doc.key}
@@ -109,7 +109,7 @@ export default function ApplicationDetailsForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
+        className="w-full sm:w-auto rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-5 py-2.5 transition-colors"
       >
         {pending ? "Saving…" : "Save & submit"}
       </button>

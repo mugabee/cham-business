@@ -15,7 +15,7 @@ export default function EmailPortalAccessButton({ borrowerId }: { borrowerId: nu
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 transition-colors disabled:opacity-60"
+        className="rounded-lg border border-line hover:bg-paper-deep text-ink text-sm font-medium px-4 py-2 transition-colors disabled:opacity-60"
       >
         {pending ? "Sending…" : "Email portal access"}
       </button>

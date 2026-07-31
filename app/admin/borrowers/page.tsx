@@ -16,38 +16,38 @@ export default async function BorrowersPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Borrowers {isArchived && <span className="text-base font-normal text-gray-400">— Archived</span>}
+        <h1 className="text-2xl font-semibold text-ink">
+          Borrowers {isArchived && <span className="text-base font-normal text-ink-soft">— Archived</span>}
         </h1>
         <Link
           href="/admin/borrowers/new"
-          className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-4 py-2 transition-colors"
+          className="rounded-lg bg-brand hover:bg-brand-deep text-white text-sm font-medium px-4 py-2 transition-colors"
         >
           + Add borrower
         </Link>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <form>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <form className="w-full sm:max-w-sm">
           {isArchived && <input type="hidden" name="archived" value="1" />}
           <input
             name="q"
             defaultValue={q}
             placeholder="Search by name or phone…"
-            className="w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft"
           />
         </form>
         <Link
           href={isArchived ? "/admin/borrowers" : "/admin/borrowers?archived=1"}
-          className="rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+          className="shrink-0 self-start rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-line text-ink-soft hover:bg-paper-deep"
         >
           {isArchived ? "← Back to active" : "Archived"}
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-line overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-paper-deep text-left text-ink-soft">
             <tr>
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Phone</th>
@@ -55,25 +55,25 @@ export default async function BorrowersPage({
               <th className="px-4 py-3 font-medium">Added</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {borrowers.map((b) => (
-              <tr key={b.id} className="hover:bg-gray-50">
+              <tr key={b.id} className="hover:bg-paper-deep">
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/borrowers/${b.id}`}
-                    className="font-medium text-gray-900 hover:text-amber-700"
+                    className="font-medium text-ink hover:text-brand-deep"
                   >
                     {b.fullName}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-gray-700">{b.phone}</td>
-                <td className="px-4 py-3 text-gray-700">{b.email || "—"}</td>
-                <td className="px-4 py-3 text-gray-500">{formatDate(b.createdAt)}</td>
+                <td className="px-4 py-3 text-ink">{b.phone}</td>
+                <td className="px-4 py-3 text-ink">{b.email || "—"}</td>
+                <td className="px-4 py-3 text-ink-soft">{formatDate(b.createdAt)}</td>
               </tr>
             ))}
             {borrowers.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={4} className="px-4 py-8 text-center text-ink-soft">
                   No borrowers found.
                 </td>
               </tr>

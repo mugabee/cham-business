@@ -14,10 +14,10 @@ export default async function NewLoanPage({
 
   return (
     <div>
-      <Link href="/admin/loans" className="text-sm text-amber-700 hover:underline">
+      <Link href="/admin/loans" className="text-sm text-brand hover:underline">
         ← Back to loans
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-6">New loan</h1>
+      <h1 className="text-2xl font-semibold text-ink mt-3 mb-6">New loan</h1>
       <LoanForm
         borrowers={borrowers.map((b) => ({ id: b.id, fullName: b.fullName }))}
         preselectedBorrowerId={borrowerId ? Number(borrowerId) : undefined}

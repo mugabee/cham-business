@@ -13,8 +13,8 @@ export default function RestructureLoanForm({
   const [open, setOpen] = useState(false);
 
   const field =
-    "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500";
-  const label = "block text-sm font-medium text-gray-700 mb-1";
+    "w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const label = "block text-sm font-medium text-ink mb-1";
   const today = new Date().toISOString().slice(0, 10);
 
   if (!open) {
@@ -22,7 +22,7 @@ export default function RestructureLoanForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-sm font-medium text-amber-700 hover:underline"
+        className="text-sm font-medium text-brand hover:underline"
       >
         Restructure loan
       </button>
@@ -43,11 +43,11 @@ export default function RestructureLoanForm({
     <form
       action={action}
       onSubmit={handleSubmit}
-      className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4 max-w-lg mt-3"
+      className="bg-white rounded-2xl border border-line p-5 space-y-4 max-w-lg mt-3"
     >
       <input type="hidden" name="loanId" value={loanId} />
-      <h3 className="text-sm font-semibold text-gray-900">Restructure loan</h3>
-      <div className="grid grid-cols-2 gap-4">
+      <h3 className="text-sm font-semibold text-ink">Restructure loan</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={label}>New term (months)</label>
           <input name="newTermMonths" type="number" min={1} max={60} required className={field} />
@@ -76,14 +76,14 @@ export default function RestructureLoanForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
+          className="rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
         >
           {pending ? "Restructuring…" : "Restructure"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-sm text-gray-500 hover:underline"
+          className="text-sm text-ink-soft hover:underline"
         >
           Cancel
         </button>

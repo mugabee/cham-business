@@ -12,10 +12,10 @@ export default async function PaymentProofsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Payment proofs</h1>
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <h1 className="text-2xl font-semibold text-ink mb-6">Payment proofs</h1>
+      <div className="bg-white rounded-2xl border border-line overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-paper-deep text-left text-ink-soft">
             <tr>
               <th className="px-4 py-3 font-medium">Borrower</th>
               <th className="px-4 py-3 font-medium">Amount claimed</th>
@@ -25,23 +25,23 @@ export default async function PaymentProofsPage() {
               <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {proofs.map((proof) => (
-              <tr key={proof.id} className="hover:bg-gray-50">
+              <tr key={proof.id} className="hover:bg-paper-deep">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/loans/${proof.loanId}`} className="font-medium text-gray-900 hover:text-amber-700">
+                  <Link href={`/admin/loans/${proof.loanId}`} className="font-medium text-ink hover:text-brand-deep">
                     {proof.borrowerName}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-gray-700">{formatRWF(proof.amountClaimed)}</td>
-                <td className="px-4 py-3 text-gray-700">{methodLabel[proof.method]}</td>
-                <td className="px-4 py-3 text-gray-500">{formatDate(proof.createdAt)}</td>
+                <td className="px-4 py-3 text-ink">{formatRWF(proof.amountClaimed)}</td>
+                <td className="px-4 py-3 text-ink">{methodLabel[proof.method]}</td>
+                <td className="px-4 py-3 text-ink-soft">{formatDate(proof.createdAt)}</td>
                 <td className="px-4 py-3">
                   <a
                     href={`/api/admin/payment-proofs/${proof.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-amber-700 hover:underline font-medium"
+                    className="text-brand hover:underline font-medium"
                   >
                     View →
                   </a>
@@ -53,7 +53,7 @@ export default async function PaymentProofsPage() {
             ))}
             {proofs.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-ink-soft">
                   No pending payment proofs.
                 </td>
               </tr>

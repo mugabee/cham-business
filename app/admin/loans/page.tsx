@@ -30,13 +30,13 @@ export default async function LoansPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Loans {isArchived && <span className="text-base font-normal text-gray-400">— Archived</span>}
+        <h1 className="text-2xl font-semibold text-ink">
+          Loans {isArchived && <span className="text-base font-normal text-ink-soft">— Archived</span>}
         </h1>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
           {tabs.map((tab) => (
             <Link
               key={tab.value}
@@ -44,10 +44,10 @@ export default async function LoansPage({
                 (tab.value ? `/admin/loans?status=${tab.value}` : "/admin/loans") +
                 (isArchived ? (tab.value ? "&archived=1" : "?archived=1") : "")
               }
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 (status ?? "") === tab.value
-                  ? "bg-amber-600 text-white"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-brand text-white"
+                  : "bg-white text-ink-soft border border-line hover:bg-paper-deep"
               }`}
             >
               {tab.label}
@@ -64,15 +64,15 @@ export default async function LoansPage({
                 ? `/admin/loans?status=${status}&archived=1`
                 : "/admin/loans?archived=1"
           }
-          className="rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+          className="shrink-0 self-start rounded-full px-3 py-1.5 text-sm font-medium border border-dashed border-line text-ink-soft hover:bg-paper-deep"
         >
           {isArchived ? "← Back to active" : "Archived"}
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-line overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-paper-deep text-left text-ink-soft">
             <tr>
               <th className="px-4 py-3 font-medium">Borrower</th>
               <th className="px-4 py-3 font-medium">Principal</th>
@@ -81,21 +81,21 @@ export default async function LoansPage({
               <th className="px-4 py-3 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {loans.map((loan) => (
-              <tr key={loan.id} className="hover:bg-gray-50">
+              <tr key={loan.id} className="hover:bg-paper-deep">
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/loans/${loan.id}`}
-                    className="font-medium text-gray-900 hover:text-amber-700"
+                    className="font-medium text-ink hover:text-brand-deep"
                   >
                     {loan.borrowerName}
                   </Link>
-                  <p className="text-gray-500">{loan.termMonths} months</p>
+                  <p className="text-ink-soft">{loan.termMonths} months</p>
                 </td>
-                <td className="px-4 py-3 text-gray-700">{formatRWF(loan.principal)}</td>
-                <td className="px-4 py-3 text-gray-700">{formatRWF(loan.outstanding)}</td>
-                <td className="px-4 py-3 text-gray-500">{formatDate(loan.disbursedAt)}</td>
+                <td className="px-4 py-3 text-ink">{formatRWF(loan.principal)}</td>
+                <td className="px-4 py-3 text-ink">{formatRWF(loan.outstanding)}</td>
+                <td className="px-4 py-3 text-ink-soft">{formatDate(loan.disbursedAt)}</td>
                 <td className="px-4 py-3 flex items-center gap-2">
                   <StatusBadge label={loan.status} tone={statusTone[loan.status]} />
                   {loan.isOverdue && <StatusBadge label="overdue" tone="danger" />}
@@ -104,7 +104,7 @@ export default async function LoansPage({
             ))}
             {loans.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-8 text-center text-ink-soft">
                   No loans found.
                 </td>
               </tr>

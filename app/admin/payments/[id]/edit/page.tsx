@@ -20,11 +20,11 @@ export default async function EditPaymentPage({
 
   return (
     <div>
-      <Link href={`/admin/loans/${payment.loanId}`} className="text-sm text-amber-700 hover:underline">
+      <Link href={`/admin/loans/${payment.loanId}`} className="text-sm text-brand hover:underline">
         ← Back to loan
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-1">Edit payment</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="text-2xl font-semibold text-ink mt-3 mb-1">Edit payment</h1>
+      <p className="text-sm text-ink-soft mb-6">
         {payment.borrowerName} — {formatRWF(payment.amount)} via {methodLabel[payment.method]} on{" "}
         {formatDate(payment.paidAt)}
       </p>

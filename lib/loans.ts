@@ -12,6 +12,7 @@ export type LoanSummary = {
   termMonths: number;
   status: "active" | "paid_off" | "written_off";
   outstanding: number;
+  totalDue: number;
   isOverdue: boolean;
   disbursedAt: Date;
   archivedAt: Date | null;
@@ -136,6 +137,10 @@ export async function listLoans(opts: {
               SELECT SUM(total_due - amount_paid) FROM repayment_schedule
               WHERE repayment_schedule.loan_id = loans.id AND repayment_schedule.status <> 'paid'
             ), 0) AS outstanding,
+            COALESCE((
+              SELECT SUM(total_due) FROM repayment_schedule
+              WHERE repayment_schedule.loan_id = loans.id
+            ), 0) AS total_due,
             EXISTS (
               SELECT 1 FROM repayment_schedule
               WHERE repayment_schedule.loan_id = loans.id
@@ -157,6 +162,7 @@ export async function listLoans(opts: {
     termMonths: row.term_months,
     status: row.status,
     outstanding: Number(row.outstanding),
+    totalDue: Number(row.total_due),
     isOverdue: Boolean(row.is_overdue),
     disbursedAt: row.disbursed_at,
     archivedAt: row.archived_at,
@@ -238,6 +244,10 @@ export async function listLoansForBorrower(borrowerId: number): Promise<LoanSumm
               SELECT SUM(total_due - amount_paid) FROM repayment_schedule
               WHERE repayment_schedule.loan_id = loans.id AND repayment_schedule.status <> 'paid'
             ), 0) AS outstanding,
+            COALESCE((
+              SELECT SUM(total_due) FROM repayment_schedule
+              WHERE repayment_schedule.loan_id = loans.id
+            ), 0) AS total_due,
             EXISTS (
               SELECT 1 FROM repayment_schedule
               WHERE repayment_schedule.loan_id = loans.id
@@ -259,6 +269,7 @@ export async function listLoansForBorrower(borrowerId: number): Promise<LoanSumm
     termMonths: row.term_months,
     status: row.status,
     outstanding: Number(row.outstanding),
+    totalDue: Number(row.total_due),
     isOverdue: Boolean(row.is_overdue),
     disbursedAt: row.disbursed_at,
     archivedAt: row.archived_at,

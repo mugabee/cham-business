@@ -22,11 +22,11 @@ export default async function EditApplicationPage({
     <div>
       <Link
         href={`/admin/applications/${application.id}`}
-        className="text-sm text-amber-700 hover:underline"
+        className="text-sm text-brand hover:underline"
       >
         ← Back to application
       </Link>
-      <h1 className="text-2xl font-semibold text-gray-900 mt-3 mb-6">Edit {application.fullName}</h1>
+      <h1 className="text-2xl font-semibold text-ink mt-3 mb-6">Edit {application.fullName}</h1>
       <ApplicationEditForm application={application} />
     </div>
   );
