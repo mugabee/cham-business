@@ -16,8 +16,12 @@ export function proxy(req: NextRequest) {
   // Relies on the standard x-forwarded-proto header; if a proxy doesn't set
   // it, this simply never fires (safe no-op, not a redirect loop).
   if (process.env.NODE_ENV === "production" && req.headers.get("x-forwarded-proto") === "http") {
-    const httpsUrl = new URL(req.nextUrl.toString());
-    httpsUrl.protocol = "https:";
+    // LiteSpeed rewrites the Host header to its internal backend address
+    // (localhost:3000) when proxying to the Node app, so req.nextUrl's host
+    // can't be trusted here -- use the forwarded-host header instead, which
+    // carries the real public hostname the visitor actually requested.
+    const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+    const httpsUrl = new URL(`https://${host}${req.nextUrl.pathname}${req.nextUrl.search}`);
     return NextResponse.redirect(httpsUrl, 308);
   }
 
