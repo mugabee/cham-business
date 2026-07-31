@@ -9,6 +9,18 @@ import { BORROWER_SESSION_COOKIE_NAME } from "@/lib/borrower-session-cookie";
 // only check. Staff and borrower sessions are two separate cookies/trust
 // domains, checked independently.
 export function proxy(req: NextRequest) {
+  // The reverse proxy (LiteSpeed) doesn't force HTTP -> HTTPS on its own,
+  // and our session cookies are Secure-only -- so a visitor who lands on
+  // plain HTTP would never have their cookies sent back at all, looking
+  // permanently logged out no matter what. Redirect before anything else.
+  // Relies on the standard x-forwarded-proto header; if a proxy doesn't set
+  // it, this simply never fires (safe no-op, not a redirect loop).
+  if (process.env.NODE_ENV === "production" && req.headers.get("x-forwarded-proto") === "http") {
+    const httpsUrl = new URL(req.nextUrl.toString());
+    httpsUrl.protocol = "https:";
+    return NextResponse.redirect(httpsUrl, 308);
+  }
+
   const hasStaffSession = Boolean(req.cookies.get(SESSION_COOKIE_NAME)?.value);
   const hasBorrowerSession = Boolean(req.cookies.get(BORROWER_SESSION_COOKIE_NAME)?.value);
 
@@ -36,5 +48,7 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/portal/:path*"],
+  // Runs on everything except Next.js's own static assets, so the HTTPS
+  // redirect above covers the whole site, not just the authenticated areas.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
