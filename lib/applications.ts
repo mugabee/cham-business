@@ -344,7 +344,7 @@ export async function approveApplication(params: {
   address?: string;
   notes?: string;
   staffId: number;
-}): Promise<{ borrowerId: number; loanId: number }> {
+}): Promise<{ borrowerId: number; loanId: number; email: string | null; fullName: string }> {
   return withTransaction(async (conn) => {
     const [rows] = await conn.query<RowDataPacket[]>(
       "SELECT * FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
@@ -401,7 +401,7 @@ export async function approveApplication(params: {
       detail: { borrowerId, loanId, principal: params.principal, termMonths: params.termMonths },
     });
 
-    return { borrowerId, loanId };
+    return { borrowerId, loanId, email: application.email, fullName: application.full_name };
   });
 }
 
@@ -409,8 +409,14 @@ export async function rejectApplication(params: {
   applicationId: number;
   staffId: number;
   notes: string;
-}): Promise<void> {
-  await withTransaction(async (conn) => {
+}): Promise<{ email: string | null; fullName: string }> {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query<RowDataPacket[]>(
+      "SELECT email, full_name FROM applications WHERE id = ? LIMIT 1 FOR UPDATE",
+      [params.applicationId]
+    );
+    const application = rows[0];
+
     await conn.query(
       `UPDATE applications
        SET status = 'rejected', reviewed_by = ?, reviewed_at = NOW(), notes = ?
@@ -425,6 +431,8 @@ export async function rejectApplication(params: {
       entityId: params.applicationId,
       detail: { notes: params.notes },
     });
+
+    return { email: application?.email ?? null, fullName: application?.full_name ?? "" };
   });
 }
 

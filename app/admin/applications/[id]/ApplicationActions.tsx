@@ -88,7 +88,17 @@ export default function ApplicationActions({
           <textarea name="notes" rows={2} className={field} />
         </div>
 
-        {approveState?.error && <p className="text-sm text-red-600">{approveState.error}</p>}
+        {approveState?.error && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5">
+            <p className="text-sm text-amber-800">{approveState.error}</p>
+            {approveState.dtiWarning && (
+              <label className="mt-2 flex items-center gap-2 text-sm text-amber-900">
+                <input type="checkbox" name="overrideDti" value="true" className="rounded" />
+                Proceed anyway (over-indebtedness threshold exceeded)
+              </label>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"

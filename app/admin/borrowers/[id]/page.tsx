@@ -12,6 +12,7 @@ const loanStatusTone = {
   active: "success",
   paid_off: "neutral",
   written_off: "danger",
+  cancelled: "neutral",
 } as const;
 
 export default async function BorrowerDetailPage({

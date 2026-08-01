@@ -2,11 +2,19 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { getLoanById } from "@/lib/loans";
+import { listPenaltiesForLoan } from "@/lib/penalties";
+import { listGuarantorsForLoan } from "@/lib/guarantors";
+import { listCollateralForLoan } from "@/lib/collateral";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ArchiveDeleteControls from "@/components/admin/ArchiveDeleteControls";
 import WriteOffLoanButton from "@/components/admin/WriteOffLoanButton";
 import RestructureLoanForm from "@/components/admin/RestructureLoanForm";
+import CoolingOffCancelButton from "@/components/admin/CoolingOffCancelButton";
+import PenaltyPanel from "@/components/admin/PenaltyPanel";
+import GuarantorPanel from "@/components/admin/GuarantorPanel";
+import CollateralPanel from "@/components/admin/CollateralPanel";
+import KeyFactsStatement from "@/components/KeyFactsStatement";
 import { deleteLoanAction } from "@/app/actions/loans";
 import { deletePaymentAction } from "@/app/actions/payments";
 
@@ -14,7 +22,10 @@ const loanStatusTone = {
   active: "success",
   paid_off: "neutral",
   written_off: "danger",
+  cancelled: "neutral",
 } as const;
+
+const COOLING_OFF_DAYS = 30;
 
 const scheduleStatusTone = {
   pending: "neutral",
@@ -35,10 +46,28 @@ export default async function LoanDetailPage({
 
   if (!loan) notFound();
 
+  const [penalties, guarantors, collateral] = await Promise.all([
+    listPenaltiesForLoan(loan.id),
+    listGuarantorsForLoan(loan.id),
+    listCollateralForLoan(loan.id),
+  ]);
+
   const outstanding = loan.schedule.reduce(
     (sum, row) => sum + (row.totalDue - row.amountPaid),
     0
   );
+  const totalRepayable = loan.schedule.reduce((sum, row) => sum + row.totalDue, 0);
+
+  const coolingOffDeadline = new Date(loan.createdAt);
+  coolingOffDeadline.setDate(coolingOffDeadline.getDate() + COOLING_OFF_DAYS);
+  const coolingOffDaysRemaining = Math.ceil(
+    (coolingOffDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+  const coolingOffEligible =
+    loan.status === "active" && loan.payments.length === 0 && coolingOffDaysRemaining > 0;
+
+  const unreturnedCollateral = collateral.filter((c) => !c.deregisteredAt);
+  const showDeregisterReminder = loan.status === "paid_off" && unreturnedCollateral.length > 0;
 
   return (
     <div className="max-w-3xl">
@@ -87,6 +116,12 @@ export default async function LoanDetailPage({
           }
         />
       </div>
+
+      {coolingOffEligible && (
+        <div className="mt-3">
+          <CoolingOffCancelButton loanId={loan.id} daysRemaining={coolingOffDaysRemaining} />
+        </div>
+      )}
 
       {loan.status === "active" && (
         <RestructureLoanForm loanId={loan.id} currentRatePercent={loan.interestRateMonthly * 100} />
@@ -201,6 +236,25 @@ export default async function LoanDetailPage({
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-8">
+        <KeyFactsStatement
+          principal={loan.principal}
+          interestRateMonthly={loan.interestRateMonthly}
+          termMonths={loan.termMonths}
+          totalRepayable={totalRepayable}
+        />
+      </div>
+
+      <div className="mt-6 space-y-6">
+        <PenaltyPanel loanId={loan.id} penalties={penalties} />
+        <GuarantorPanel loanId={loan.id} guarantors={guarantors} />
+        <CollateralPanel
+          loanId={loan.id}
+          collateral={collateral}
+          showDeregisterReminder={showDeregisterReminder}
+        />
       </div>
     </div>
   );

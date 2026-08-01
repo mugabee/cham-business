@@ -4,13 +4,15 @@ import { pool, withTransaction } from "@/lib/db";
 import { generateSchedule } from "@/lib/loan-math";
 import { logAudit } from "@/lib/audit";
 
+export type LoanStatus = "active" | "paid_off" | "written_off" | "cancelled";
+
 export type LoanSummary = {
   id: number;
   borrowerId: number;
   borrowerName: string;
   principal: number;
   termMonths: number;
-  status: "active" | "paid_off" | "written_off";
+  status: LoanStatus;
   outstanding: number;
   totalDue: number;
   isOverdue: boolean;
@@ -48,8 +50,10 @@ export type LoanDetail = {
   principal: number;
   interestRateMonthly: number;
   termMonths: number;
-  status: "active" | "paid_off" | "written_off";
+  status: LoanStatus;
   disbursedAt: Date;
+  paidOffAt: Date | null;
+  createdAt: Date;
   archivedAt: Date | null;
   schedule: ScheduleRow[];
   payments: PaymentRow[];
@@ -173,7 +177,7 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
   const [loanRows] = await pool.query<RowDataPacket[]>(
     `SELECT loans.id, loans.borrower_id, borrowers.full_name AS borrower_name,
             loans.principal, loans.interest_rate_monthly, loans.term_months,
-            loans.status, loans.disbursed_at, loans.archived_at
+            loans.status, loans.disbursed_at, loans.paid_off_at, loans.created_at, loans.archived_at
      FROM loans
      JOIN borrowers ON borrowers.id = loans.borrower_id
      WHERE loans.id = ?
@@ -211,6 +215,8 @@ export async function getLoanById(id: number): Promise<LoanDetail | null> {
     termMonths: loan.term_months,
     status: loan.status,
     disbursedAt: loan.disbursed_at,
+    paidOffAt: loan.paid_off_at,
+    createdAt: loan.created_at,
     archivedAt: loan.archived_at,
     schedule: scheduleRows.map((row) => ({
       id: row.id,
@@ -329,6 +335,73 @@ export async function writeOffLoan(id: number, staffId: number): Promise<{ error
     }
     await conn.query("UPDATE loans SET status = 'written_off' WHERE id = ?", [id]);
     await logAudit(conn, { staffId, action: "loan.written_off", entity: "loan", entityId: id });
+    return {};
+  });
+}
+
+/**
+ * BNR Reg 55/2022 Article 54: a consumer may withdraw from a signed loan
+ * agreement within a cooling-off period, free of any penalty, provided
+ * this happens before disbursement. This system disburses at the moment a
+ * loan record is created (there's no separate "signed but not yet
+ * disbursed" state), so the closest faithful equivalent is: allow
+ * cancellation only while the loan has zero payments recorded and it's
+ * within 30 calendar days of loan creation. Cancelling sets status to
+ * 'cancelled' (kept for audit trail, not deleted) rather than removing the
+ * loan outright.
+ */
+const COOLING_OFF_DAYS = 30;
+
+export async function cancelLoanCoolingOff(
+  loanId: number,
+  staffId: number,
+  reason: string
+): Promise<{ error?: string }> {
+  return withTransaction(async (conn) => {
+    const [[loan]] = await conn.query<RowDataPacket[]>(
+      "SELECT * FROM loans WHERE id = ? LIMIT 1 FOR UPDATE",
+      [loanId]
+    );
+    if (!loan) return { error: "Loan not found." };
+    if (loan.status !== "active") {
+      return { error: "Only an active loan can be cancelled under the cooling-off period." };
+    }
+
+    const [[paymentCount]] = await conn.query<RowDataPacket[]>(
+      "SELECT COUNT(*) AS count FROM payments WHERE loan_id = ?",
+      [loanId]
+    );
+    if (paymentCount.count > 0) {
+      return {
+        error: "This loan already has payments recorded -- the cooling-off period no longer applies.",
+      };
+    }
+
+    const deadline = new Date(loan.created_at);
+    deadline.setDate(deadline.getDate() + COOLING_OFF_DAYS);
+    if (new Date() > deadline) {
+      return { error: `The ${COOLING_OFF_DAYS}-day cooling-off window for this loan has passed.` };
+    }
+
+    await conn.query("UPDATE loans SET status = 'cancelled' WHERE id = ?", [loanId]);
+
+    if (loan.application_id) {
+      await conn.query(
+        `UPDATE applications
+         SET notes = CONCAT(COALESCE(notes, ''), '\n[Cooling-off cancellation] ', ?)
+         WHERE id = ?`,
+        [reason, loan.application_id]
+      );
+    }
+
+    await logAudit(conn, {
+      staffId,
+      action: "loan.cancelled_cooling_off",
+      entity: "loan",
+      entityId: loanId,
+      detail: { reason },
+    });
+
     return {};
   });
 }
@@ -506,7 +579,10 @@ export async function recomputeLoanScheduleFromPayments(
   const allPaid = state.every((row) => row.amountPaid >= row.totalDue);
   const newStatus = allPaid ? "paid_off" : "active";
   if (newStatus !== loanRow.status) {
-    await conn.query("UPDATE loans SET status = ? WHERE id = ?", [newStatus, loanId]);
+    await conn.query(
+      `UPDATE loans SET status = ?, paid_off_at = ${newStatus === "paid_off" ? "NOW()" : "NULL"} WHERE id = ?`,
+      [newStatus, loanId]
+    );
     await logAudit(conn, {
       staffId,
       action: newStatus === "paid_off" ? "loan.paid_off" : "loan.reactivated",

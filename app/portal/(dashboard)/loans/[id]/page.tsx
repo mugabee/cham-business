@@ -6,6 +6,7 @@ import { listPaymentProofsForLoan } from "@/lib/payment-proofs";
 import { formatRWF, formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import PaymentProofForm from "@/components/portal/PaymentProofForm";
+import KeyFactsStatement from "@/components/KeyFactsStatement";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ const loanStatusTone = {
   active: "success",
   paid_off: "neutral",
   written_off: "danger",
+  cancelled: "neutral",
 } as const;
 
 const scheduleStatusTone = {
@@ -42,6 +44,7 @@ export default async function PortalLoanPage({
 
   const proofs = await listPaymentProofsForLoan(loan.id);
   const outstanding = loan.schedule.reduce((sum, row) => sum + (row.totalDue - row.amountPaid), 0);
+  const totalRepayable = loan.schedule.reduce((sum, row) => sum + row.totalDue, 0);
 
   return (
     <div>
@@ -160,6 +163,22 @@ export default async function PortalLoanPage({
       )}
 
       {loan.status === "active" && <PaymentProofForm loanId={loan.id} />}
+
+      <div className="mt-8">
+        <KeyFactsStatement
+          principal={loan.principal}
+          interestRateMonthly={loan.interestRateMonthly}
+          termMonths={loan.termMonths}
+          totalRepayable={totalRepayable}
+        />
+      </div>
+
+      <p className="mt-4 text-sm text-ink-soft">
+        Not happy with something about this loan?{" "}
+        <Link href={`/portal/complaints?loanId=${loan.id}`} className="text-brand hover:underline">
+          File a complaint
+        </Link>
+      </p>
     </div>
   );
 }

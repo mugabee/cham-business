@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/dal";
 import { recordPayment, updatePaymentNotes, deletePayment } from "@/lib/payments";
 import { recordPaymentSchema, updatePaymentSchema } from "@/lib/validation";
+import { notifyGuarantorsOfFullRepayment } from "@/lib/guarantor-notify";
 
 export async function recordPaymentAction(
   _prevState: { error?: string } | undefined,
@@ -28,6 +29,8 @@ export async function recordPaymentAction(
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to record payment." };
   }
+
+  await notifyGuarantorsOfFullRepayment(result.data.loanId);
 
   redirect(`/admin/loans/${result.data.loanId}`);
 }

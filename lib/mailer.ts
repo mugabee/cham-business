@@ -59,6 +59,48 @@ export async function sendPortalAccessEmail(to: string, fullName: string) {
   });
 }
 
+/** BNR Reg 55/2022 Article 32: applicants must be notified of a loan decision within 2 working days. */
+export async function sendApplicationApprovedEmail(
+  to: string,
+  fullName: string,
+  principal: number,
+  termMonths: number
+) {
+  const amount = principal.toLocaleString();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: "Your Cham Business loan application has been approved",
+    text: `Dear ${fullName},\n\nGood news -- your loan application has been approved: RWF ${amount} over ${termMonths} months.\n\nNext steps: our team will be in touch to finish your paperwork and arrange disbursement. If you signed for this loan and haven't yet received funds, you may cancel free of charge within 30 days of approval by contacting us.\n\nCham Business Ltd`,
+    html: `<p>Dear ${fullName},</p><p>Good news — your loan application has been approved: <strong>RWF ${amount}</strong> over <strong>${termMonths} months</strong>.</p><p>Next steps: our team will be in touch to finish your paperwork and arrange disbursement. If you signed for this loan and haven't yet received funds, you may cancel free of charge within 30 days of approval by contacting us.</p><p>Cham Business Ltd</p>`,
+  });
+}
+
+export async function sendApplicationRejectedEmail(to: string, fullName: string, reason: string) {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: "Update on your Cham Business loan application",
+    text: `Dear ${fullName},\n\nWe're unable to approve your loan application at this time.\n\nReason: ${reason}\n\nYou're welcome to apply again once your circumstances change, or contact us if you'd like guidance on what to improve for next time.\n\nCham Business Ltd`,
+    html: `<p>Dear ${fullName},</p><p>We're unable to approve your loan application at this time.</p><p><strong>Reason:</strong> ${reason}</p><p>You're welcome to apply again once your circumstances change, or contact us if you'd like guidance on what to improve for next time.</p><p>Cham Business Ltd</p>`,
+  });
+}
+
+/** BNR Reg 55/2022 Article 33: a guarantor must be notified within 15 days of full repayment. */
+export async function sendGuarantorRepaymentNoticeEmail(
+  to: string,
+  guarantorName: string,
+  borrowerName: string
+) {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: "Cham Business: the loan you guaranteed has been fully repaid",
+    text: `Dear ${guarantorName},\n\nThis is to inform you that ${borrowerName}'s loan, which you guaranteed, has been fully repaid. Your guarantee obligation for this loan has ended.\n\nCham Business Ltd`,
+    html: `<p>Dear ${guarantorName},</p><p>This is to inform you that ${borrowerName}'s loan, which you guaranteed, has been fully repaid. Your guarantee obligation for this loan has ended.</p><p>Cham Business Ltd</p>`,
+  });
+}
+
 export async function sendOverdueReminderEmail(
   to: string,
   borrowerName: string,

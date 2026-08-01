@@ -88,6 +88,10 @@ export const approveApplicationSchema = z.object({
   nationalId: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  // Debt-to-income safeguard (BNR Reg 55/2022 Art 95-96): if the estimated
+  // installment exceeds the warning threshold, the form re-submits with
+  // this flag set once staff confirms they want to proceed anyway.
+  overrideDti: z.string().optional(),
 });
 
 export const updateApplicationSchema = z.object({
@@ -143,4 +147,53 @@ export const recordPaymentSchema = z.object({
   }),
   reference: z.string().optional(),
   notes: z.string().optional(),
+});
+
+// Consumer-protection compliance schemas (penalties, guarantors,
+// collateral, complaints, cooling-off cancellation).
+
+export const applyPenaltySchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  amount: z.coerce.number().int().positive("Enter the penalty amount"),
+  reason: z.string().min(3, "Explain why this penalty is being charged"),
+});
+
+export const resolvePenaltySchema = z.object({
+  penaltyId: z.coerce.number().int().positive(),
+  loanId: z.coerce.number().int().positive(),
+});
+
+export const guarantorSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  fullName: z.string().min(2, "Enter the guarantor's full name"),
+  phone: z.string().min(10, "Enter a valid phone number"),
+  email: z.string().email("Enter a valid email").or(z.literal("")).optional(),
+  address: z.string().optional(),
+  relationshipToBorrower: z.string().optional(),
+});
+
+export const collateralSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  description: z.string().min(3, "Describe the collateral"),
+  estimatedValue: z.coerce.number().int().positive().optional(),
+});
+
+export const cancelLoanCoolingOffSchema = z.object({
+  loanId: z.coerce.number().int().positive(),
+  reason: z.string().min(3, "Add a short reason for the file"),
+});
+
+export const complaintSchema = z.object({
+  category: z.string().min(1, "Choose a category"),
+  description: z.string().min(10, "Tell us a bit more about what happened"),
+  loanId: z.coerce.number().int().positive().optional(),
+  applicationId: z.coerce.number().int().positive().optional(),
+});
+
+export const updateComplaintStatusSchema = z.object({
+  complaintId: z.coerce.number().int().positive(),
+  status: z.enum(["open", "investigating", "resolved", "rejected"], {
+    message: "Choose a status",
+  }),
+  resolutionNotes: z.string().optional(),
 });

@@ -6,6 +6,7 @@ const statusTone = {
   active: "success",
   paid_off: "neutral",
   written_off: "danger",
+  cancelled: "neutral",
 } as const;
 
 export default function LoanProgressCard({
@@ -16,7 +17,7 @@ export default function LoanProgressCard({
     principal: number;
     outstanding: number;
     totalDue: number;
-    status: "active" | "paid_off" | "written_off";
+    status: "active" | "paid_off" | "written_off" | "cancelled";
     isOverdue: boolean;
   };
 }) {

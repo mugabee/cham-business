@@ -10,6 +10,9 @@ export default function PortalNav({ fullName }: { fullName: string }) {
           Cham Business
         </Link>
         <div className="flex items-center gap-3 sm:gap-4">
+          <Link href="/portal/complaints" className="text-sm text-ink-soft hover:text-brand transition-colors">
+            Complaints
+          </Link>
           <span className="hidden sm:inline text-sm text-ink-soft truncate max-w-[10rem]">{fullName}</span>
           <form action={logoutPortalAction}>
             <button

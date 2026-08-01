@@ -11,6 +11,7 @@ const navItems = [
   { href: "/admin/loans", label: "Loans" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/payment-proofs", label: "Payment proofs" },
+  { href: "/admin/complaints", label: "Complaints" },
   { href: "/admin/accounting", label: "Accounting" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/audit", label: "Audit log" },

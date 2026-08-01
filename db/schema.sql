@@ -126,9 +126,10 @@ CREATE TABLE IF NOT EXISTS loans (
   interest_rate_monthly  DECIMAL(5,4) NOT NULL DEFAULT 0.0500,
   term_months            SMALLINT UNSIGNED NOT NULL,
   method                 VARCHAR(50) NOT NULL DEFAULT 'reducing_balance',
-  status                 ENUM('active','paid_off','written_off') NOT NULL DEFAULT 'active',
+  status                 ENUM('active','paid_off','written_off','cancelled') NOT NULL DEFAULT 'active',
   disbursed_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   disbursed_by           INT NULL,
+  paid_off_at            DATETIME NULL,
   created_at             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   archived_at            DATETIME NULL,
   FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE RESTRICT,
@@ -198,6 +199,79 @@ CREATE TABLE IF NOT EXISTS payment_proofs (
 ) ENGINE=InnoDB;
 CREATE INDEX idx_payment_proofs_status ON payment_proofs(status);
 CREATE INDEX idx_payment_proofs_loan_id ON payment_proofs(loan_id);
+
+-- Consumer protection: penalty ledger (capped by the in duplum rule),
+-- guarantors, collateral register/deregister tracking, and a formal
+-- complaints channel. See db/migration-consumer-protection.sql for the
+-- one-off ALTER/CREATE statements applied against the live database.
+
+CREATE TABLE IF NOT EXISTS loan_penalties (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  loan_id      INT NOT NULL,
+  amount       INT UNSIGNED NOT NULL,
+  reason       VARCHAR(500) NOT NULL,
+  status       ENUM('pending','paid','waived') NOT NULL DEFAULT 'pending',
+  applied_by   INT NULL,
+  applied_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_by  INT NULL,
+  resolved_at  DATETIME NULL,
+  FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE,
+  FOREIGN KEY (applied_by) REFERENCES staff(id) ON DELETE SET NULL,
+  FOREIGN KEY (resolved_by) REFERENCES staff(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_loan_penalties_loan_id ON loan_penalties(loan_id);
+
+CREATE TABLE IF NOT EXISTS guarantors (
+  id                       INT AUTO_INCREMENT PRIMARY KEY,
+  loan_id                  INT NOT NULL,
+  full_name                VARCHAR(255) NOT NULL,
+  phone                    VARCHAR(30) NOT NULL,
+  email                    VARCHAR(255) NULL,
+  address                  VARCHAR(500) NULL,
+  relationship_to_borrower VARCHAR(255) NULL,
+  repayment_notified_at    DATETIME NULL,
+  created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_by               INT NULL,
+  FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_guarantors_loan_id ON guarantors(loan_id);
+
+CREATE TABLE IF NOT EXISTS loan_collateral (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  loan_id          INT NOT NULL,
+  description      VARCHAR(1000) NOT NULL,
+  estimated_value  INT UNSIGNED NULL,
+  registered_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  registered_by    INT NULL,
+  deregistered_at  DATETIME NULL,
+  deregistered_by  INT NULL,
+  FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE CASCADE,
+  FOREIGN KEY (registered_by) REFERENCES staff(id) ON DELETE SET NULL,
+  FOREIGN KEY (deregistered_by) REFERENCES staff(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_collateral_loan_id ON loan_collateral(loan_id);
+
+CREATE TABLE IF NOT EXISTS complaints (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  borrower_id      INT NULL,
+  loan_id          INT NULL,
+  application_id   INT NULL,
+  category         VARCHAR(100) NOT NULL,
+  description      VARCHAR(2000) NOT NULL,
+  channel          ENUM('portal','staff') NOT NULL DEFAULT 'portal',
+  status           ENUM('open','investigating','resolved','rejected') NOT NULL DEFAULT 'open',
+  resolution_notes VARCHAR(2000) NULL,
+  submitted_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_by      INT NULL,
+  resolved_at      DATETIME NULL,
+  FOREIGN KEY (borrower_id) REFERENCES borrowers(id) ON DELETE SET NULL,
+  FOREIGN KEY (loan_id) REFERENCES loans(id) ON DELETE SET NULL,
+  FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE SET NULL,
+  FOREIGN KEY (resolved_by) REFERENCES staff(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_complaints_status ON complaints(status);
+CREATE INDEX idx_complaints_borrower_id ON complaints(borrower_id);
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,

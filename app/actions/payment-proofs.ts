@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { verifySession } from "@/lib/dal";
 import { confirmPaymentProof, rejectPaymentProof } from "@/lib/payment-proofs";
+import { notifyGuarantorsOfFullRepayment } from "@/lib/guarantor-notify";
 
 export async function confirmPaymentProofAction(
   _prevState: { error?: string; success?: boolean } | undefined,
@@ -10,9 +11,13 @@ export async function confirmPaymentProofAction(
   const session = await verifySession();
   const id = Number(formData.get("id"));
 
-  const { error } = await confirmPaymentProof(id, session.userId);
+  const { error, loanId } = await confirmPaymentProof(id, session.userId);
   if (error) {
     return { error };
+  }
+
+  if (loanId) {
+    await notifyGuarantorsOfFullRepayment(loanId);
   }
 
   revalidatePath("/admin/payment-proofs");

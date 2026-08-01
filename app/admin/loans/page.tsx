@@ -8,6 +8,7 @@ const statusTone = {
   active: "success",
   paid_off: "neutral",
   written_off: "danger",
+  cancelled: "neutral",
 } as const;
 
 const tabs = [
@@ -15,6 +16,7 @@ const tabs = [
   { label: "Active", value: "active" },
   { label: "Paid off", value: "paid_off" },
   { label: "Written off", value: "written_off" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 export default async function LoansPage({

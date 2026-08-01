@@ -82,7 +82,9 @@ export async function recordPayment(params: {
     );
 
     if (remainingCount.count === 0) {
-      await conn.query("UPDATE loans SET status = 'paid_off' WHERE id = ?", [params.loanId]);
+      await conn.query("UPDATE loans SET status = 'paid_off', paid_off_at = NOW() WHERE id = ?", [
+        params.loanId,
+      ]);
       await logAudit(conn, {
         staffId: params.staffId,
         action: "loan.paid_off",

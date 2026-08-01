@@ -133,7 +133,10 @@ export async function getPaymentProofFile(id: number): Promise<{
   };
 }
 
-export async function confirmPaymentProof(id: number, staffId: number): Promise<{ error?: string }> {
+export async function confirmPaymentProof(
+  id: number,
+  staffId: number
+): Promise<{ error?: string; loanId?: number }> {
   const [rows] = await pool.query<RowDataPacket[]>(
     "SELECT * FROM payment_proofs WHERE id = ? LIMIT 1",
     [id]
@@ -169,7 +172,7 @@ export async function confirmPaymentProof(id: number, staffId: number): Promise<
     detail: { proofId: id, loanId: proof.loan_id },
   });
 
-  return {};
+  return { loanId: proof.loan_id };
 }
 
 export async function rejectPaymentProof(
