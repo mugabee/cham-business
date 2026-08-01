@@ -91,7 +91,11 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-white/15 pt-6 text-xs leading-relaxed text-white/55">
           <p>{company.registrationNote} Loans are subject to eligibility, affordability assessment, and approval.</p>
-          <p className="mt-4">© {new Date().getFullYear()} {company.name}. All rights reserved.</p>
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span>© {new Date().getFullYear()} {company.name}. All rights reserved.</span>
+            <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>
