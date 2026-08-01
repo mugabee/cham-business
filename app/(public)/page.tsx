@@ -111,6 +111,20 @@ export default function Home() {
               </div>
             ))}
           </div>
+          <div className="mt-8 flex flex-wrap gap-x-8 gap-y-2">
+            <Link
+              href="/how-it-works"
+              className="font-semibold text-[var(--color-brand)] hover:underline"
+            >
+              See the full step-by-step guide →
+            </Link>
+            <Link
+              href="/resources"
+              className="font-semibold text-[var(--color-brand)] hover:underline"
+            >
+              Read our borrowing guides →
+            </Link>
+          </div>
         </div>
       </section>
 
