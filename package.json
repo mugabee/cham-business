@@ -1,7 +1,24 @@
 {
   "name": "cham-business",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Loan origination and servicing platform for Cham Business Ltd, a licensed non-deposit lender in Rwanda -- public site, staff back-office, and a passwordless borrower portal, engineered to BNR Regulation No. 55/2022 (financial service consumer protection).",
   "private": true,
+  "license": "UNLICENSED",
+  "author": "Cham Business Ltd",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mugabee/cham-business.git"
+  },
+  "keywords": [
+    "nextjs",
+    "typescript",
+    "fintech",
+    "lending",
+    "loan-management",
+    "mysql",
+    "regulatory-compliance",
+    "rwanda"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build . --webpack",
