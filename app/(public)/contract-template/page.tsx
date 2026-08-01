@@ -10,7 +10,7 @@ const clauses = [
   },
   {
     title: "2. Interest",
-    body: `Interest is charged on the reducing balance at ${loanTerms.rate}. Interest is calculated only on the outstanding principal, and no interest is charged twice on the same amount.`,
+    body: `Interest is charged at ${loanTerms.rate}. Interest is calculated only on the outstanding principal, and no interest is charged twice on the same amount.`,
   },
   {
     title: "3. Repayment",
