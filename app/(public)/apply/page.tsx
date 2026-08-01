@@ -4,7 +4,8 @@ import ApplyForm from "@/components/ApplyForm";
 
 export const metadata: Metadata = {
   title: "Apply",
-  description: "Apply for a personal loan with Cham Business Ltd. A short form, a quick decision.",
+  description:
+    "Apply for a quick personal loan in Kigali, Rwanda with Cham Business Ltd. A short online form, a decision within 24 hours, no hidden fees.",
   alternates: { canonical: "/apply" },
 };
 

@@ -16,9 +16,9 @@ const inter = Inter({
 });
 
 const SITE_URL = "https://chambusiness.org";
-const SITE_TITLE = "Cham Business Ltd — Friendly Personal Loans in Rwanda";
+const SITE_TITLE = "Cham Business Ltd — Quick Personal Loans in Kigali, Rwanda";
 const SITE_DESCRIPTION =
-  "Cham Business Ltd is a registered non-deposit lender offering fast, fair personal loans to individuals across Rwanda. Apply in minutes.";
+  "Cham Business Ltd offers fast personal loans in Kigali and across Rwanda -- 24-hour decisions, no hidden fees, RWF 300,000 to 20,000,000. Apply online in minutes.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,7 +29,10 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: [
     "personal loans Rwanda",
-    "individual loans Kigali",
+    "quick loans Kigali",
+    "emergency loan Rwanda",
+    "salary loan Rwanda",
+    "business loan Kigali",
     "non-deposit lender Rwanda",
     "Cham Business Ltd",
   ],
@@ -46,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: SITE_TITLE,
     description:
-      "Fast, fair personal loans for individuals across Rwanda. Apply in minutes.",
+      "Fast personal loans in Kigali and across Rwanda -- 24-hour decisions, no hidden fees. Apply in minutes.",
     url: "/",
     siteName: "Cham Business Ltd",
     locale: "en_RW",
@@ -56,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description:
-      "Fast, fair personal loans for individuals across Rwanda. Apply in minutes.",
+      "Fast personal loans in Kigali and across Rwanda -- 24-hour decisions, no hidden fees. Apply in minutes.",
   },
 };
 

@@ -11,9 +11,9 @@ import {
 } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Loan Products",
+  title: "Loan Rates & Products",
   description:
-    "Six loan types, one clear rate. RWF 300,000–20,000,000 at 5% per month on the reducing balance, repayment agreed with you.",
+    "Personal, business, emergency, salary, car, and property loans in Kigali and across Rwanda. RWF 300,000–20,000,000 at 5% per month on the reducing balance, no hidden fees.",
   alternates: { canonical: "/loans" },
 };
 
