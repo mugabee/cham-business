@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { company } from "@/lib/site";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -14,23 +15,65 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_URL = "https://chambusiness.org";
+const SITE_TITLE = "Cham Business Ltd — Friendly Personal Loans in Rwanda";
+const SITE_DESCRIPTION =
+  "Cham Business Ltd is a registered non-deposit lender offering fast, fair personal loans to individuals across Rwanda. Apply in minutes.";
+
 export const metadata: Metadata = {
-  title: "Cham Business Ltd — Friendly Personal Loans in Rwanda",
-  description:
-    "Cham Business Ltd is a registered non-deposit lender offering fast, fair personal loans to individuals across Rwanda. Apply in minutes.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s — Cham Business Ltd",
+  },
+  description: SITE_DESCRIPTION,
   keywords: [
     "personal loans Rwanda",
     "individual loans Kigali",
     "non-deposit lender Rwanda",
     "Cham Business Ltd",
   ],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "Cham Business Ltd — Friendly Personal Loans in Rwanda",
+    title: SITE_TITLE,
     description:
       "Fast, fair personal loans for individuals across Rwanda. Apply in minutes.",
+    url: "/",
+    siteName: "Cham Business Ltd",
     locale: "en_RW",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description:
+      "Fast, fair personal loans for individuals across Rwanda. Apply in minutes.",
+  },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  name: "Cham Business Ltd",
+  description: SITE_DESCRIPTION,
+  url: SITE_URL,
+  areaServed: {
+    "@type": "Country",
+    name: "Rwanda",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "RW",
+    addressLocality: "Kigali",
+  },
+  telephone: company.phone,
+  email: company.email,
 };
 
 export default function RootLayout({
@@ -41,6 +84,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${jakarta.variable} ${inter.variable}`}>
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {children}
         <a
           href="https://wa.me/250780123779"

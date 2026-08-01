@@ -3,8 +3,9 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 
 export const metadata: Metadata = {
-  title: "About — Cham Business Ltd",
+  title: "About",
   description: "Learn about Cham Business Ltd, a registered non-deposit lender serving individuals across Rwanda.",
+  alternates: { canonical: "/about" },
 };
 
 // See app/(public)/page.tsx for why this is forced dynamic.

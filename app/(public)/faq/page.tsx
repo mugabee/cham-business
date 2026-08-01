@@ -1,13 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import FaqAccordion from "./FaqAccordion";
+import { faqs } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description: "Common questions about eligibility, approval time, fees, and repaying a Cham Business Ltd loan.",
+  alternates: { canonical: "/faq" },
+};
 
 // See app/(public)/page.tsx for why this is forced dynamic.
 export const dynamic = "force-dynamic";
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function FaqPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <PageHeader
         eyebrow="FAQ"
         title="Questions, answered plainly"

@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import { company } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "Service Charter",
+  description: "Clear timelines for what you can expect from Cham Business Ltd -- loan decisions, complaint responses, and more.",
+  alternates: { canonical: "/service-charter" },
+};
 
 export const dynamic = "force-dynamic";
 

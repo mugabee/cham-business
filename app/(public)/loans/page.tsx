@@ -11,9 +11,10 @@ import {
 } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Loan Products — Cham Business Ltd",
+  title: "Loan Products",
   description:
     "Six loan types, one clear rate. RWF 300,000–20,000,000 at 5% per month on the reducing balance, repayment agreed with you.",
+  alternates: { canonical: "/loans" },
 };
 
 // See app/(public)/page.tsx for why this is forced dynamic.

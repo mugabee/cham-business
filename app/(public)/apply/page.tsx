@@ -3,8 +3,9 @@ import PageHeader from "@/components/PageHeader";
 import ApplyForm from "@/components/ApplyForm";
 
 export const metadata: Metadata = {
-  title: "Apply — Cham Business Ltd",
+  title: "Apply",
   description: "Apply for a personal loan with Cham Business Ltd. A short form, a quick decision.",
+  alternates: { canonical: "/apply" },
 };
 
 // See app/(public)/page.tsx for why this is forced dynamic.

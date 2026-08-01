@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import { company, loanTerms } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "Standard Loan Contract Terms",
+  description: "The standard loan agreement terms Cham Business Ltd builds every loan contract on.",
+  alternates: { canonical: "/contract-template" },
+};
 
 export const dynamic = "force-dynamic";
 
