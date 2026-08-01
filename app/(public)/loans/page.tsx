@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import LoanCalculator from "@/components/LoanCalculator";
 import {
   loanProducts,
   loanTerms,
@@ -174,6 +175,10 @@ export default function LoansPage() {
             <p className="border-t border-[var(--color-line)] px-7 py-4 text-xs text-[var(--color-ink-soft)] italic">
               {interestExplainer.example.disclaimer}
             </p>
+          </div>
+
+          <div className="mt-8">
+            <LoanCalculator />
           </div>
         </div>
       </section>
