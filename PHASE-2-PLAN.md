@@ -1,8 +1,8 @@
 # Phase 2 Build Plan — Cham Business Ltd Admin System
 
 This document is the brief for building the admin/back-office system on top of the
-existing public site. Hand this to Claude Code as the spec. Build incrementally,
-verify each part works before moving on, and commit to Git after each working piece.
+existing public site. Build incrementally, verify each part works before moving on,
+and commit to Git after each working piece.
 
 ## Business rules (decided)
 
@@ -134,9 +134,8 @@ prisma/
 - Publish a privacy policy; collect only data you have a lawful basis to hold.
 - Get local legal advice before going live with real borrower data.
 
-## Working method for Claude Code
+## Working method
 
-- Run `/init` first so the codebase context loads.
 - Build one numbered feature at a time; confirm it runs before the next.
 - Never commit `.env.local` or secrets.
 - Commit to Git after each working feature so there's always a safe restore point.
