@@ -1,4 +1,4 @@
-# Phase 2 Build Plan — Cham Business Ltd Admin System
+# Phase 2 Build Plan -- Cham Business Ltd Admin System
 
 This document is the brief for building the admin/back-office system on top of the
 existing public site. Build incrementally, verify each part works before moving on,
@@ -19,16 +19,16 @@ and commit to Git after each working piece.
 ## Tech stack
 
 - Next.js (existing project, App Router)
-- Supabase — Postgres database, staff authentication, secure file storage
-- Prisma — type-safe database access
-- Recharts — analytics charts
+- Supabase -- Postgres database, staff authentication, secure file storage
+- Prisma -- type-safe database access
+- Recharts -- analytics charts
 - Deployed on Vercel (existing setup)
 
 ## Security requirements (non-negotiable)
 
 - All secrets in environment variables (`.env.local`), never committed to Git.
 - Passwords handled by Supabase Auth (hashed; never store plain passwords).
-- Every admin route protected — redirect to login if not authenticated.
+- Every admin route protected -- redirect to login if not authenticated.
 - An **audit log**: record who created/edited/deleted financial records, and when.
 - Store the **minimum** sensitive data needed. Record national ID *number*
   (encrypted at rest if possible); avoid storing ID photos unless truly required.
@@ -85,20 +85,20 @@ instalment so the loan closes exactly at zero.
 
 ## Admin features (build in this order)
 
-1. **Auth + admin shell** — staff login (Supabase), protected `/admin` layout with
+1. **Auth + admin shell** -- staff login (Supabase), protected `/admin` layout with
    sidebar nav, logout. Nothing else accessible without login.
-2. **Applications** — list incoming applications from the public form; view detail;
+2. **Applications** -- list incoming applications from the public form; view detail;
    approve/reject; on approve, create a borrower + loan.
-3. **Borrowers** — list, search, view a borrower and their loans.
-4. **Loans** — list active loans; loan detail showing the schedule and balance;
+3. **Borrowers** -- list, search, view a borrower and their loans.
+4. **Loans** -- list active loans; loan detail showing the schedule and balance;
    create a loan (generates schedule).
-5. **Payments** — record a payment against a loan; auto-update schedule + status;
+5. **Payments** -- record a payment against a loan; auto-update schedule + status;
    flag overdue instalments.
-6. **Accounting** — totals: disbursed, collected, outstanding principal, interest
+6. **Accounting** -- totals: disbursed, collected, outstanding principal, interest
    earned, overdue amount. Exportable (CSV) for the accountant.
-7. **Analytics** — charts: new loans over time, portfolio value, collection rate,
+7. **Analytics** -- charts: new loans over time, portfolio value, collection rate,
    overdue trend.
-8. **Audit log view** — read-only list of staff actions.
+8. **Audit log view** -- read-only list of staff actions.
 
 ## Connect the public form
 

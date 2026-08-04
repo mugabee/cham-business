@@ -5,7 +5,7 @@ title: ""
 labels: bug
 ---
 
-**Security vulnerability?** Please don't file it here — see [SECURITY.md](../../SECURITY.md) for
+**Security vulnerability?** Please don't file it here -- see [SECURITY.md](../../SECURITY.md) for
 how to report it privately instead.
 
 ## What happened

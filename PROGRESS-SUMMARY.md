@@ -1,4 +1,4 @@
-# Cham Business Ltd — Digital System Progress Summary
+# Cham Business Ltd -- Digital System Progress Summary
 **Prepared for:** Cham Business Ltd  
 **Date:** 25 June 2026  
 
@@ -24,10 +24,10 @@ The website is live at **chambusiness.org** and consists of seven public-facing 
 
 A visitor to chambusiness.org can currently:
 
-- **Browse all loan products** — read full descriptions of all six loan types with the terms that apply to each.
-- **Understand the cost** — see a clear, honest explanation of how reducing-balance interest works, with a worked example showing real figures.
-- **Submit a loan application** — fill in and submit a short online form (name, phone, email, loan type, amount, purpose, income). The form validates the information before submission and confirms receipt.
-- **Contact the business** — reach Cham Business by phone, email, WhatsApp, TikTok, or Instagram directly from the site.
+- **Browse all loan products** -- read full descriptions of all six loan types with the terms that apply to each.
+- **Understand the cost** -- see a clear, honest explanation of how reducing-balance interest works, with a worked example showing real figures.
+- **Submit a loan application** -- fill in and submit a short online form (name, phone, email, loan type, amount, purpose, income). The form validates the information before submission and confirms receipt.
+- **Contact the business** -- reach Cham Business by phone, email, WhatsApp, TikTok, or Instagram directly from the site.
 
 ---
 
@@ -37,9 +37,9 @@ The following loan details are live and accurate on the website:
 
 - **Six loan types:** Plots & House, Emergency, Business, Personal, Salary, and Car loans.
 - **Loan amounts:** RWF 300,000 to RWF 20,000,000.
-- **Interest model:** 5% per month on the reducing balance. This means interest is charged on what you still owe — as you repay, the interest portion of each payment shrinks while the payment amount stays the same.
+- **Interest model:** 5% per month on the reducing balance. This means interest is charged on what you still owe -- as you repay, the interest portion of each payment shrinks while the payment amount stays the same.
 - **Worked example published:** Borrow RWF 1,000,000 over 4 months → equal monthly payment of approximately RWF 282,012 → total interest approximately RWF 128,047 → total repaid approximately RWF 1,128,047.
-- **Repayment flexibility:** Daily, weekly, or monthly — agreed with the borrower before the loan is disbursed.
+- **Repayment flexibility:** Daily, weekly, or monthly -- agreed with the borrower before the loan is disbursed.
 - **Transparency note:** The site states clearly that the full repayment schedule is shown to the borrower before signing.
 
 ---
@@ -56,7 +56,7 @@ A private staff area exists at a separate, password-protected address. Here is a
 
 **Built but not yet active:**
 - The Dashboard page loads successfully after login and shows a welcome message, but does not yet display any live data (application counts, loan totals, etc.).
-- The sidebar navigation items (Applications, Borrowers, Loans, Payments, etc.) are visible but the pages behind them have not been built yet — clicking them will not load content at this stage.
+- The sidebar navigation items (Applications, Borrowers, Loans, Payments, etc.) are visible but the pages behind them have not been built yet -- clicking them will not load content at this stage.
 
 In short: staff can log in and see the shell of the system. The management tools themselves (viewing applications, recording loans, tracking payments) are the next stage of development.
 
@@ -64,7 +64,7 @@ In short: staff can log in and see the shell of the system. The management tools
 
 ## 5. Behind the Scenes
 
-The website and staff system are built on professional, industry-standard technology used by businesses worldwide. The site is served securely over HTTPS. The staff login uses the same authentication infrastructure trusted by thousands of companies globally, including session security and automatic protection against common online attacks. A database has been set up and is ready to store borrower records, loan data, payments, and an audit trail of all staff activity — this will be connected to the admin tools in the next phase. The loan calculation logic (reducing-balance amortization) has been built and verified, ready to power the system when loan management goes live.
+The website and staff system are built on professional, industry-standard technology used by businesses worldwide. The site is served securely over HTTPS. The staff login uses the same authentication infrastructure trusted by thousands of companies globally, including session security and automatic protection against common online attacks. A database has been set up and is ready to store borrower records, loan data, payments, and an audit trail of all staff activity -- this will be connected to the admin tools in the next phase. The loan calculation logic (reducing-balance amortization) has been built and verified, ready to power the system when loan management goes live.
 
 ---
 

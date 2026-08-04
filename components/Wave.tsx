@@ -1,4 +1,4 @@
-// Soft wave divider — the brand's friendly signature shape.
+// Soft wave divider -- the brand's friendly signature shape.
 export default function Wave({
   className = "",
   fill = "var(--color-paper)",

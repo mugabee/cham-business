@@ -9,7 +9,7 @@ be transparent about how the project is actually built and maintained, not to in
 - **Solo-maintained.** One engineer owns product, backend, frontend, database design, and
   deployment.
 - **Feature-branch-free, incremental commits to `main`.** Each commit is a working, verified
-  increment — the codebase stays deployable at every commit, not just at release points.
+  increment -- the codebase stays deployable at every commit, not just at release points.
 - **Verify before commit.** `npx tsc --noEmit` and `npm run build` are run locally before every
   commit that touches application code; UI changes are checked in a live browser, not just
   assumed correct from reading the diff.
@@ -21,7 +21,7 @@ be transparent about how the project is actually built and maintained, not to in
 
 ## Reporting a bug or vulnerability
 
-- **Security issues:** see [SECURITY.md](SECURITY.md) — please don't file these as public issues.
+- **Security issues:** see [SECURITY.md](SECURITY.md) -- please don't file these as public issues.
 - **Everything else:** open an issue with steps to reproduce. Since this isn't accepting external
   code contributions, issues are for visibility rather than a promise of a fix timeline.
 

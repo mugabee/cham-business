@@ -5,7 +5,7 @@ import { BORROWER_SESSION_COOKIE_NAME } from "@/lib/borrower-session-cookie";
 // Lightweight, DB-free gate: only checks whether a session cookie is present.
 // The authoritative check (does the token hash exist in the sessions table,
 // is it unexpired) happens in verifySession()/verifyBorrowerSession(),
-// called from the admin/portal layouts — this is defense in depth, not the
+// called from the admin/portal layouts -- this is defense in depth, not the
 // only check. Staff and borrower sessions are two separate cookies/trust
 // domains, checked independently.
 export function proxy(req: NextRequest) {
