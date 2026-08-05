@@ -30,12 +30,20 @@ export default async function JobsPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-ink">Jobs</h1>
-        <Link
-          href="/admin/jobs/new"
-          className="rounded-lg bg-brand hover:bg-brand-deep text-white text-sm font-medium px-4 py-2 transition-colors"
-        >
-          New posting
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/jobs/applicants"
+            className="rounded-lg border border-line hover:bg-paper-deep text-ink text-sm font-medium px-4 py-2 transition-colors"
+          >
+            All applicants
+          </Link>
+          <Link
+            href="/admin/jobs/new"
+            className="rounded-lg bg-brand hover:bg-brand-deep text-white text-sm font-medium px-4 py-2 transition-colors"
+          >
+            New posting
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mb-1 mb-4">

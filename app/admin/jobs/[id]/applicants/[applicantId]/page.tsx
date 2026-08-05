@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { verifySession } from "@/lib/dal";
-import { getJobApplicantById, APPLICANT_STATUS_LABELS } from "@/lib/job-applicants";
+import { getJobApplicantById, getApplicantStatusHistory, APPLICANT_STATUS_LABELS } from "@/lib/job-applicants";
 import { formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ApplicantPipelineControl from "@/components/admin/ApplicantPipelineControl";
+import ApplicantStatusHistory from "@/components/admin/ApplicantStatusHistory";
 
 const applicantTone = {
   new: "warning",
@@ -24,6 +25,7 @@ export default async function JobApplicantDetailPage({
   const { id, applicantId } = await params;
   const applicant = await getJobApplicantById(Number(applicantId));
   if (!applicant || applicant.jobPostingId !== Number(id)) notFound();
+  const history = await getApplicantStatusHistory(applicant.id);
 
   return (
     <div className="max-w-2xl">
@@ -67,12 +69,10 @@ export default async function JobApplicantDetailPage({
             <p className="text-ink whitespace-pre-wrap">{applicant.coverLetter}</p>
           </div>
         )}
-        {applicant.reviewedByEmail && (
-          <div className="col-span-2 text-ink-soft">
-            Last updated by {applicant.reviewedByEmail} on{" "}
-            {applicant.reviewedAt ? formatDate(applicant.reviewedAt) : ""}
-          </div>
-        )}
+      </div>
+
+      <div className="mt-6">
+        <ApplicantStatusHistory history={history} />
       </div>
 
       <div className="mt-6">

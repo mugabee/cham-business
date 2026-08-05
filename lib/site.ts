@@ -12,6 +12,8 @@ export const company = {
   instagram: "cham_business_ltd",
   registrationNote:
     "Cham Business Ltd is a non-deposit lending institution. We do not accept deposits from the public.",
+  equalOpportunityStatement:
+    "Cham Business Ltd is an equal-opportunity employer. We consider every application on its merits, regardless of gender, ethnicity, religion, disability, or any other characteristic unrelated to the role.",
 };
 
 export type LoanProduct = {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { listOpenJobPostings, EMPLOYMENT_TYPE_LABELS } from "@/lib/jobs";
+import { company } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -50,6 +51,10 @@ export default async function CareersPage() {
             </Link>
           ))}
         </div>
+
+        <p className="mt-10 text-center text-xs text-[var(--color-ink-soft)]">
+          {company.equalOpportunityStatement}
+        </p>
       </section>
     </>
   );

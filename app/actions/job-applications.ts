@@ -3,7 +3,7 @@ import { jobApplicationSchema } from "@/lib/validation";
 import { createJobApplication } from "@/lib/job-applicants";
 import { getJobPostingById } from "@/lib/jobs";
 import { saveUploadedFile } from "@/lib/uploads";
-import { sendJobApplicationReceivedEmail } from "@/lib/mailer";
+import { sendJobApplicationReceivedEmail, sendNewJobApplicationStaffNotification } from "@/lib/mailer";
 
 export async function submitJobApplicationAction(
   _prevState: { error?: string; success?: boolean } | undefined,
@@ -38,8 +38,9 @@ export async function submitJobApplicationAction(
     return { error: err instanceof Error ? err.message : "Couldn't upload your resume." };
   }
 
+  let applicantId;
   try {
-    await createJobApplication({
+    applicantId = await createJobApplication({
       jobPostingId: result.data.jobPostingId,
       fullName: result.data.fullName,
       email: result.data.email,
@@ -53,6 +54,14 @@ export async function submitJobApplicationAction(
 
   await sendJobApplicationReceivedEmail(result.data.email, result.data.fullName, posting.title).catch(() => {
     // Application already saved -- a flaky SMTP send shouldn't block the applicant.
+  });
+  await sendNewJobApplicationStaffNotification(
+    result.data.jobPostingId,
+    applicantId,
+    result.data.fullName,
+    posting.title
+  ).catch(() => {
+    // Same as above -- the application is already saved either way.
   });
 
   return { success: true };

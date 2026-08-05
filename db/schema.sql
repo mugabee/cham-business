@@ -318,6 +318,18 @@ CREATE TABLE IF NOT EXISTS job_applicants (
 CREATE INDEX idx_job_applicants_posting_id ON job_applicants(job_posting_id);
 CREATE INDEX idx_job_applicants_status ON job_applicants(status);
 
+CREATE TABLE IF NOT EXISTS job_applicant_status_history (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  applicant_id  INT NOT NULL,
+  status        ENUM('new','screening','interview','offer','hired','rejected') NOT NULL,
+  notes         VARCHAR(2000) NULL,
+  changed_by    INT NULL,
+  changed_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (applicant_id) REFERENCES job_applicants(id) ON DELETE CASCADE,
+  FOREIGN KEY (changed_by) REFERENCES staff(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+CREATE INDEX idx_job_applicant_status_history_applicant_id ON job_applicant_status_history(applicant_id);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   staff_id    INT NULL,

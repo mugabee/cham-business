@@ -77,3 +77,15 @@ export type JobApplicantDetail = JobApplicantSummary & {
   reviewedAt: Date | null;
   jobPostingTitle: string;
 };
+
+export type JobApplicantStatusHistoryEntry = {
+  id: number;
+  status: ApplicantStatus;
+  notes: string | null;
+  changedAt: Date;
+  changedByEmail: string | null;
+};
+
+export type JobApplicantListRow = JobApplicantSummary & {
+  jobPostingTitle: string;
+};

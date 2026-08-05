@@ -101,6 +101,22 @@ export async function sendGuarantorRepaymentNoticeEmail(
   });
 }
 
+export async function sendNewJobApplicationStaffNotification(
+  jobPostingId: number,
+  applicantId: number,
+  fullName: string,
+  jobTitle: string
+) {
+  const adminUrl = `${process.env.APP_URL}/admin/jobs/${jobPostingId}/applicants/${applicantId}`;
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: process.env.SMTP_FROM,
+    subject: `New application: ${jobTitle} -- ${fullName}`,
+    text: `${fullName} just applied for ${jobTitle}.\n\nReview it here: ${adminUrl}`,
+    html: `<p><strong>${fullName}</strong> just applied for <strong>${jobTitle}</strong>.</p><p><a href="${adminUrl}">Review this application</a></p>`,
+  });
+}
+
 export async function sendJobApplicationReceivedEmail(
   to: string,
   fullName: string,

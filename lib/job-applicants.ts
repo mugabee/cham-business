@@ -3,9 +3,21 @@ import type { RowDataPacket } from "mysql2/promise";
 import { pool, withTransaction } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import type { SavedFile } from "@/lib/uploads";
-import type { ApplicantStatus, JobApplicantSummary, JobApplicantDetail } from "@/lib/job-types";
+import type {
+  ApplicantStatus,
+  JobApplicantSummary,
+  JobApplicantDetail,
+  JobApplicantStatusHistoryEntry,
+  JobApplicantListRow,
+} from "@/lib/job-types";
 
-export type { ApplicantStatus, JobApplicantSummary, JobApplicantDetail } from "@/lib/job-types";
+export type {
+  ApplicantStatus,
+  JobApplicantSummary,
+  JobApplicantDetail,
+  JobApplicantStatusHistoryEntry,
+  JobApplicantListRow,
+} from "@/lib/job-types";
 export { APPLICANT_STATUS_LABELS, APPLICANT_PIPELINE } from "@/lib/job-types";
 
 export async function createJobApplication(params: {
@@ -44,6 +56,12 @@ export async function createJobApplication(params: {
       ]
     );
     const id = (result as { insertId: number }).insertId;
+
+    await conn.query(
+      `INSERT INTO job_applicant_status_history (applicant_id, status, changed_by)
+       VALUES (?, 'new', NULL)`,
+      [id]
+    );
 
     await logAudit(conn, {
       staffId: null,
@@ -156,6 +174,12 @@ export async function updateApplicantStatus(params: {
       [params.status, params.notes || null, params.staffId, params.applicantId]
     );
 
+    await conn.query(
+      `INSERT INTO job_applicant_status_history (applicant_id, status, notes, changed_by)
+       VALUES (?, ?, ?, ?)`,
+      [params.applicantId, params.status, params.notes || null, params.staffId]
+    );
+
     await logAudit(conn, {
       staffId: params.staffId,
       action: "job_applicant.status_changed",
@@ -170,4 +194,69 @@ export async function updateApplicantStatus(params: {
       jobPostingTitle: applicant.job_posting_title,
     };
   });
+}
+
+export async function getApplicantStatusHistory(
+  applicantId: number
+): Promise<JobApplicantStatusHistoryEntry[]> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT job_applicant_status_history.id, job_applicant_status_history.status,
+            job_applicant_status_history.notes, job_applicant_status_history.changed_at,
+            staff.email AS changed_by_email
+     FROM job_applicant_status_history
+     LEFT JOIN staff ON staff.id = job_applicant_status_history.changed_by
+     WHERE job_applicant_status_history.applicant_id = ?
+     ORDER BY job_applicant_status_history.id ASC`,
+    [applicantId]
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    status: row.status,
+    notes: row.notes,
+    changedAt: row.changed_at,
+    changedByEmail: row.changed_by_email,
+  }));
+}
+
+/** Search/filter across every posting -- for the "all applicants" admin view. */
+export async function listAllApplicants(opts: {
+  search?: string;
+  status?: ApplicantStatus;
+}): Promise<JobApplicantListRow[]> {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+
+  if (opts.search) {
+    conditions.push("(job_applicants.full_name LIKE ? OR job_applicants.email LIKE ?)");
+    const like = `%${opts.search}%`;
+    values.push(like, like);
+  }
+  if (opts.status) {
+    conditions.push("job_applicants.status = ?");
+    values.push(opts.status);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT job_applicants.id, job_applicants.job_posting_id, job_applicants.full_name,
+            job_applicants.email, job_applicants.phone, job_applicants.status,
+            job_applicants.submitted_at, job_postings.title AS job_posting_title
+     FROM job_applicants
+     JOIN job_postings ON job_postings.id = job_applicants.job_posting_id
+     ${where}
+     ORDER BY job_applicants.submitted_at DESC`,
+    values
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    jobPostingId: row.job_posting_id,
+    jobPostingTitle: row.job_posting_title,
+    fullName: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    status: row.status,
+    submittedAt: row.submitted_at,
+  }));
 }
