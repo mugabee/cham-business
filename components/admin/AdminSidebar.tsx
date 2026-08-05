@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/payment-proofs", label: "Payment proofs" },
   { href: "/admin/complaints", label: "Complaints" },
+  { href: "/admin/jobs", label: "Jobs" },
   { href: "/admin/accounting", label: "Accounting" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/audit", label: "Audit log" },

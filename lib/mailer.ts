@@ -101,6 +101,42 @@ export async function sendGuarantorRepaymentNoticeEmail(
   });
 }
 
+export async function sendJobApplicationReceivedEmail(
+  to: string,
+  fullName: string,
+  jobTitle: string
+) {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `We've received your application: ${jobTitle}`,
+    text: `Dear ${fullName},\n\nThank you for applying for the ${jobTitle} position at Cham Business Ltd. We've received your application and resume, and our team will review it shortly. We'll be in touch if we'd like to move forward.\n\nCham Business Ltd`,
+    html: `<p>Dear ${fullName},</p><p>Thank you for applying for the <strong>${jobTitle}</strong> position at Cham Business Ltd. We've received your application and resume, and our team will review it shortly. We'll be in touch if we'd like to move forward.</p><p>Cham Business Ltd</p>`,
+  });
+}
+
+const APPLICANT_STATUS_MESSAGE: Record<string, string> = {
+  interview: "We'd like to invite you for an interview. Our team will contact you shortly to arrange a time.",
+  offer: "We're pleased to let you know we'd like to offer you this role. Our team will be in touch with the details.",
+  rejected: "We've decided not to move forward with your application on this occasion.",
+};
+
+export async function sendJobApplicationStatusEmail(
+  to: string,
+  fullName: string,
+  jobTitle: string,
+  status: "interview" | "offer" | "rejected"
+) {
+  const message = APPLICANT_STATUS_MESSAGE[status];
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `Update on your application: ${jobTitle}`,
+    text: `Dear ${fullName},\n\nAn update on your application for the ${jobTitle} position at Cham Business Ltd.\n\n${message}\n\nCham Business Ltd`,
+    html: `<p>Dear ${fullName},</p><p>An update on your application for the <strong>${jobTitle}</strong> position at Cham Business Ltd.</p><p>${message}</p><p>Cham Business Ltd</p>`,
+  });
+}
+
 export async function sendOverdueReminderEmail(
   to: string,
   borrowerName: string,

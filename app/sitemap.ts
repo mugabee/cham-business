@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { resources } from "@/lib/resources";
+import { listOpenJobPostings } from "@/lib/jobs";
 
 const BASE_URL = "https://chambusiness.org";
 
@@ -10,6 +11,7 @@ const routes: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["ch
   { path: "/how-it-works", changeFrequency: "monthly", priority: 0.7 },
   { path: "/resources", changeFrequency: "weekly", priority: 0.7 },
   { path: "/about", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/careers", changeFrequency: "weekly", priority: 0.5 },
   { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
   { path: "/contract-template", changeFrequency: "yearly", priority: 0.3 },
   { path: "/service-charter", changeFrequency: "yearly", priority: 0.3 },
@@ -17,7 +19,7 @@ const routes: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["ch
   { path: "/terms", changeFrequency: "yearly", priority: 0.2 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
 
   const staticEntries = routes.map((route) => ({
@@ -34,5 +36,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...articleEntries];
+  const openPostings = await listOpenJobPostings().catch(() => []);
+  const jobEntries = openPostings.map((posting) => ({
+    url: `${BASE_URL}/careers/${posting.slug}`,
+    lastModified: posting.createdAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.4,
+  }));
+
+  return [...staticEntries, ...articleEntries, ...jobEntries];
 }

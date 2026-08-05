@@ -74,6 +74,16 @@ export default function PrivacyPage() {
           repaid or written off.
         </P>
 
+        <H2>Job applicants</H2>
+        <P>
+          If you apply for a role through our careers page, we collect your name, email, phone
+          number, resume/CV, and any cover letter you choose to submit. This is used solely to
+          assess your application and contact you about it, is only accessible to staff involved
+          in hiring, and is not used for any lending or credit-assessment purpose. We keep
+          applicant records for a reasonable period after a hiring decision is made, and you can
+          ask us to delete your application by contacting us at the email below.
+        </P>
+
         <H2>Your rights</H2>
         <P>
           You can ask us what personal data we hold about you, request a correction, or ask us to

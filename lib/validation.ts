@@ -197,3 +197,36 @@ export const updateComplaintStatusSchema = z.object({
   }),
   resolutionNotes: z.string().optional(),
 });
+
+// Careers/hiring schemas.
+
+export const jobPostingSchema = z.object({
+  title: z.string().min(2, "Enter a job title"),
+  department: z.string().optional(),
+  location: z.string().min(2, "Enter a location"),
+  employmentType: z.enum(["full_time", "part_time", "contract", "internship"], {
+    message: "Choose an employment type",
+  }),
+  summary: z.string().min(10, "Add a one- or two-line summary").max(500),
+  description: z.string().min(20, "Describe the role"),
+  requirements: z.string().min(10, "List the requirements"),
+});
+
+export const jobApplicationSchema = z.object({
+  jobPostingId: z.coerce.number().int().positive(),
+  fullName: z.string().min(2, "Please enter your full name"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z
+    .string()
+    .min(10, "Please enter a valid phone number")
+    .regex(/^[0-9+\s-]+$/, "Phone can only contain numbers"),
+  coverLetter: z.string().max(3000).optional(),
+});
+
+export const updateApplicantStatusSchema = z.object({
+  applicantId: z.coerce.number().int().positive(),
+  status: z.enum(["new", "screening", "interview", "offer", "hired", "rejected"], {
+    message: "Choose a status",
+  }),
+  notes: z.string().optional(),
+});

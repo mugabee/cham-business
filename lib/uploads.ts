@@ -8,7 +8,14 @@ import fs from "fs/promises";
 // is only ever reachable through the authenticated download route.
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export type SavedFile = {
@@ -28,6 +35,10 @@ function extensionForMime(mime: string): string {
       return ".webp";
     case "application/pdf":
       return ".pdf";
+    case "application/msword":
+      return ".doc";
+    case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+      return ".docx";
     default:
       return "";
   }
