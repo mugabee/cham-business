@@ -24,7 +24,7 @@ data handling, and the deployment configuration described in the README.
 
 Out of scope: social engineering against staff or customers, physical security of the hosting
 provider, and denial-of-service testing against the production environment (this runs on
-resource-constrained shared hosting -- a load test *is* an outage).
+resource-constrained shared hosting, where a load test *is* an outage).
 
 ## What's already in place
 

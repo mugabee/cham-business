@@ -5,12 +5,12 @@ import { BORROWER_SESSION_COOKIE_NAME } from "@/lib/borrower-session-cookie";
 // Lightweight, DB-free gate: only checks whether a session cookie is present.
 // The authoritative check (does the token hash exist in the sessions table,
 // is it unexpired) happens in verifySession()/verifyBorrowerSession(),
-// called from the admin/portal layouts -- this is defense in depth, not the
+// called from the admin/portal layouts; this is defense in depth, not the
 // only check. Staff and borrower sessions are two separate cookies/trust
 // domains, checked independently.
 export function proxy(req: NextRequest) {
   // The reverse proxy (LiteSpeed) doesn't force HTTP -> HTTPS on its own,
-  // and our session cookies are Secure-only -- so a visitor who lands on
+  // and our session cookies are Secure-only, so a visitor who lands on
   // plain HTTP would never have their cookies sent back at all, looking
   // permanently logged out no matter what. Redirect before anything else.
   // Relies on the standard x-forwarded-proto header; if a proxy doesn't set
@@ -18,7 +18,7 @@ export function proxy(req: NextRequest) {
   if (process.env.NODE_ENV === "production" && req.headers.get("x-forwarded-proto") === "http") {
     // LiteSpeed rewrites the Host header to its internal backend address
     // (localhost:3000) when proxying to the Node app, so req.nextUrl's host
-    // can't be trusted here -- use the forwarded-host header instead, which
+    // can't be trusted here; use the forwarded-host header instead, which
     // carries the real public hostname the visitor actually requested.
     const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
     const httpsUrl = new URL(`https://${host}${req.nextUrl.pathname}${req.nextUrl.search}`);

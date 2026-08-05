@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validate on the server too -- never trust the client alone.
+    // Validate on the server too; never trust the client alone.
     const result = applicationSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json({ error: result.error.issues[0]?.message ?? "Invalid data" }, { status: 400 });
