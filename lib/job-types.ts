@@ -59,6 +59,15 @@ export const APPLICANT_PIPELINE: ApplicantStatus[] = [
   "hired",
 ];
 
+export type ApplicantRating = "unrated" | "strong" | "maybe" | "not_fit";
+
+export const APPLICANT_RATING_LABELS: Record<ApplicantRating, string> = {
+  unrated: "Unrated",
+  strong: "Strong fit",
+  maybe: "Maybe",
+  not_fit: "Not a fit",
+};
+
 export type JobApplicantSummary = {
   id: number;
   jobPostingId: number;
@@ -66,6 +75,7 @@ export type JobApplicantSummary = {
   email: string;
   phone: string;
   status: ApplicantStatus;
+  rating: ApplicantRating;
   submittedAt: Date;
 };
 

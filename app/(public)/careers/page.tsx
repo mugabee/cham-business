@@ -3,6 +3,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { listOpenJobPostings, EMPLOYMENT_TYPE_LABELS } from "@/lib/jobs";
 import { company } from "@/lib/site";
+import JobAlertSignupForm from "@/components/JobAlertSignupForm";
 
 export const metadata: Metadata = {
   title: "Careers",
@@ -25,13 +26,23 @@ export default async function CareersPage() {
 
       <section className="mx-auto max-w-3xl px-5 py-16">
         {postings.length === 0 && (
-          <p className="rounded-2xl border border-[var(--color-line)] bg-white p-8 text-center text-[var(--color-ink-soft)]">
-            We don't have any open positions right now, but check back soon -- or reach out via{" "}
-            <Link href="/about" className="text-[var(--color-brand)] hover:underline">
-              our contact details
-            </Link>
-            .
-          </p>
+          <div className="rounded-2xl border border-[var(--color-line)] bg-white p-8 text-center">
+            <p className="text-[var(--color-ink-soft)]">
+              We don't have any open positions right now, but check back soon, or reach out via{" "}
+              <Link href="/about" className="text-[var(--color-brand)] hover:underline">
+                our contact details
+              </Link>
+              .
+            </p>
+            <p className="mt-4 text-sm font-semibold text-[var(--color-ink)]">
+              Want to know when we're hiring?
+            </p>
+            <div className="mt-3 flex justify-center">
+              <div className="w-full max-w-sm">
+                <JobAlertSignupForm />
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="space-y-4">
@@ -52,7 +63,27 @@ export default async function CareersPage() {
           ))}
         </div>
 
-        <p className="mt-10 text-center text-xs text-[var(--color-ink-soft)]">
+        {postings.length > 0 && (
+          <div className="mt-10 rounded-2xl border border-[var(--color-line)] bg-white p-6 text-center">
+            <p className="text-sm font-semibold text-[var(--color-ink)]">
+              Don't see a fit yet? Get notified about future openings.
+            </p>
+            <div className="mt-3 flex justify-center">
+              <div className="w-full max-w-sm">
+                <JobAlertSignupForm />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-10 text-center text-sm text-[var(--color-ink-soft)]">
+          Already applied?{" "}
+          <Link href="/careers/status" className="text-[var(--color-brand)] hover:underline">
+            Check your application status
+          </Link>
+        </p>
+
+        <p className="mt-4 text-center text-xs text-[var(--color-ink-soft)]">
           {company.equalOpportunityStatement}
         </p>
       </section>

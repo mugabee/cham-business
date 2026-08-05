@@ -308,6 +308,7 @@ CREATE TABLE IF NOT EXISTS job_applicants (
   resume_mime_type          VARCHAR(100) NOT NULL,
   resume_file_size          INT UNSIGNED NOT NULL,
   status                    ENUM('new','screening','interview','offer','hired','rejected') NOT NULL DEFAULT 'new',
+  rating                    ENUM('unrated','strong','maybe','not_fit') NOT NULL DEFAULT 'unrated',
   notes                     VARCHAR(2000) NULL,
   submitted_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   reviewed_by               INT NULL,
@@ -329,6 +330,14 @@ CREATE TABLE IF NOT EXISTS job_applicant_status_history (
   FOREIGN KEY (changed_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 CREATE INDEX idx_job_applicant_status_history_applicant_id ON job_applicant_status_history(applicant_id);
+
+CREATE TABLE IF NOT EXISTS job_alert_subscribers (
+  id               INT AUTO_INCREMENT PRIMARY KEY,
+  email            VARCHAR(255) NOT NULL UNIQUE,
+  unsubscribe_token CHAR(64) NOT NULL UNIQUE,
+  subscribed_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  unsubscribed_at  DATETIME NULL
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS audit_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,

@@ -6,6 +6,8 @@ import { formatDate } from "@/lib/format";
 import StatusBadge from "@/components/admin/StatusBadge";
 import ApplicantPipelineControl from "@/components/admin/ApplicantPipelineControl";
 import ApplicantStatusHistory from "@/components/admin/ApplicantStatusHistory";
+import ApplicantRatingControl from "@/components/admin/ApplicantRatingControl";
+import ApplicantWhatsAppButton from "@/components/admin/ApplicantWhatsAppButton";
 
 const applicantTone = {
   new: "warning",
@@ -37,7 +39,14 @@ export default async function JobApplicantDetailPage({
         <h1 className="text-2xl font-semibold text-ink">{applicant.fullName}</h1>
         <StatusBadge label={APPLICANT_STATUS_LABELS[applicant.status]} tone={applicantTone[applicant.status]} />
       </div>
-      <p className="text-ink-soft">Applied for {applicant.jobPostingTitle}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-ink-soft">Applied for {applicant.jobPostingTitle}</p>
+        <ApplicantRatingControl
+          applicantId={applicant.id}
+          jobPostingId={applicant.jobPostingId}
+          currentRating={applicant.rating}
+        />
+      </div>
 
       <div className="mt-6 bg-white rounded-2xl border border-line p-5 grid grid-cols-2 gap-4 text-sm">
         <div>
@@ -47,6 +56,14 @@ export default async function JobApplicantDetailPage({
         <div>
           <p className="text-ink-soft">Phone</p>
           <p className="text-ink">{applicant.phone}</p>
+          <div className="mt-1.5">
+            <ApplicantWhatsAppButton
+              phone={applicant.phone}
+              fullName={applicant.fullName}
+              jobPostingTitle={applicant.jobPostingTitle}
+              status={applicant.status}
+            />
+          </div>
         </div>
         <div>
           <p className="text-ink-soft">Submitted</p>

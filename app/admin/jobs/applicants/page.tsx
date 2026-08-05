@@ -2,17 +2,7 @@ import Link from "next/link";
 import { verifySession } from "@/lib/dal";
 import { listAllApplicants } from "@/lib/job-applicants";
 import { APPLICANT_STATUS_LABELS, type ApplicantStatus } from "@/lib/job-types";
-import { formatDate } from "@/lib/format";
-import StatusBadge from "@/components/admin/StatusBadge";
-
-const applicantTone = {
-  new: "warning",
-  screening: "neutral",
-  interview: "neutral",
-  offer: "success",
-  hired: "success",
-  rejected: "danger",
-} as const;
+import BulkApplicantTable from "@/components/admin/BulkApplicantTable";
 
 export default async function AllApplicantsPage({
   searchParams,
@@ -73,45 +63,7 @@ export default async function AllApplicantsPage({
         </button>
       </form>
 
-      <div className="bg-white rounded-2xl border border-line overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-paper-deep text-left text-ink-soft">
-            <tr>
-              <th className="px-4 py-3 font-medium">Applicant</th>
-              <th className="px-4 py-3 font-medium">Applied for</th>
-              <th className="px-4 py-3 font-medium">Submitted</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {applicants.map((applicant) => (
-              <tr key={applicant.id} className="hover:bg-paper-deep">
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/admin/jobs/${applicant.jobPostingId}/applicants/${applicant.id}`}
-                    className="font-medium text-ink hover:text-brand-deep"
-                  >
-                    {applicant.fullName}
-                  </Link>
-                  <p className="text-ink-soft">{applicant.email}</p>
-                </td>
-                <td className="px-4 py-3 text-ink">{applicant.jobPostingTitle}</td>
-                <td className="px-4 py-3 text-ink-soft">{formatDate(applicant.submittedAt)}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge label={APPLICANT_STATUS_LABELS[applicant.status]} tone={applicantTone[applicant.status]} />
-                </td>
-              </tr>
-            ))}
-            {applicants.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-ink-soft">
-                  No applicants found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <BulkApplicantTable applicants={applicants} />
     </div>
   );
 }

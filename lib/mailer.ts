@@ -153,6 +153,22 @@ export async function sendJobApplicationStatusEmail(
   });
 }
 
+export async function sendNewJobAlertEmail(
+  to: string,
+  jobTitle: string,
+  jobUrl: string,
+  unsubscribeToken: string
+) {
+  const unsubscribeUrl = `${process.env.APP_URL}/api/careers/unsubscribe?token=${unsubscribeToken}`;
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `New opening at Cham Business Ltd: ${jobTitle}`,
+    text: `We've just posted a new position: ${jobTitle}.\n\nView and apply: ${jobUrl}\n\nDon't want these emails? Unsubscribe: ${unsubscribeUrl}`,
+    html: `<p>We've just posted a new position: <strong>${jobTitle}</strong>.</p><p><a href="${jobUrl}">View and apply</a></p><p style="font-size:12px;color:#888;">Don't want these emails? <a href="${unsubscribeUrl}">Unsubscribe</a>.</p>`,
+  });
+}
+
 export async function sendOverdueReminderEmail(
   to: string,
   borrowerName: string,

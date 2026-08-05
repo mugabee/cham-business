@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit";
 import type { SavedFile } from "@/lib/uploads";
 import type {
   ApplicantStatus,
+  ApplicantRating,
   JobApplicantSummary,
   JobApplicantDetail,
   JobApplicantStatusHistoryEntry,
@@ -13,12 +14,13 @@ import type {
 
 export type {
   ApplicantStatus,
+  ApplicantRating,
   JobApplicantSummary,
   JobApplicantDetail,
   JobApplicantStatusHistoryEntry,
   JobApplicantListRow,
 } from "@/lib/job-types";
-export { APPLICANT_STATUS_LABELS, APPLICANT_PIPELINE } from "@/lib/job-types";
+export { APPLICANT_STATUS_LABELS, APPLICANT_PIPELINE, APPLICANT_RATING_LABELS } from "@/lib/job-types";
 
 export async function createJobApplication(params: {
   jobPostingId: number;
@@ -79,7 +81,7 @@ export async function listApplicantsForPosting(
   jobPostingId: number
 ): Promise<JobApplicantSummary[]> {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT id, job_posting_id, full_name, email, phone, status, submitted_at
+    `SELECT id, job_posting_id, full_name, email, phone, status, rating, submitted_at
      FROM job_applicants
      WHERE job_posting_id = ?
      ORDER BY submitted_at DESC`,
@@ -93,6 +95,7 @@ export async function listApplicantsForPosting(
     email: row.email,
     phone: row.phone,
     status: row.status,
+    rating: row.rating,
     submittedAt: row.submitted_at,
   }));
 }
@@ -101,8 +104,8 @@ export async function getJobApplicantById(id: number): Promise<JobApplicantDetai
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT job_applicants.id, job_applicants.job_posting_id, job_applicants.full_name,
             job_applicants.email, job_applicants.phone, job_applicants.cover_letter,
-            job_applicants.resume_original_filename, job_applicants.status, job_applicants.notes,
-            job_applicants.submitted_at, job_applicants.reviewed_at,
+            job_applicants.resume_original_filename, job_applicants.status, job_applicants.rating,
+            job_applicants.notes, job_applicants.submitted_at, job_applicants.reviewed_at,
             job_postings.title AS job_posting_title, staff.email AS reviewed_by_email
      FROM job_applicants
      JOIN job_postings ON job_postings.id = job_applicants.job_posting_id
@@ -123,6 +126,7 @@ export async function getJobApplicantById(id: number): Promise<JobApplicantDetai
     coverLetter: row.cover_letter,
     resumeOriginalFilename: row.resume_original_filename,
     status: row.status,
+    rating: row.rating,
     notes: row.notes,
     submittedAt: row.submitted_at,
     reviewedByEmail: row.reviewed_by_email,
@@ -196,6 +200,27 @@ export async function updateApplicantStatus(params: {
   });
 }
 
+/** Self-service status lookup -- deliberately returns only low-sensitivity
+ * fields (title, status, date), never the resume or cover letter. */
+export async function listApplicantsByEmail(email: string): Promise<
+  { jobPostingTitle: string; status: ApplicantStatus; submittedAt: Date }[]
+> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT job_postings.title AS job_posting_title, job_applicants.status, job_applicants.submitted_at
+     FROM job_applicants
+     JOIN job_postings ON job_postings.id = job_applicants.job_posting_id
+     WHERE job_applicants.email = ?
+     ORDER BY job_applicants.submitted_at DESC`,
+    [email]
+  );
+
+  return rows.map((row) => ({
+    jobPostingTitle: row.job_posting_title,
+    status: row.status,
+    submittedAt: row.submitted_at,
+  }));
+}
+
 export async function getApplicantStatusHistory(
   applicantId: number
 ): Promise<JobApplicantStatusHistoryEntry[]> {
@@ -240,7 +265,7 @@ export async function listAllApplicants(opts: {
 
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT job_applicants.id, job_applicants.job_posting_id, job_applicants.full_name,
-            job_applicants.email, job_applicants.phone, job_applicants.status,
+            job_applicants.email, job_applicants.phone, job_applicants.status, job_applicants.rating,
             job_applicants.submitted_at, job_postings.title AS job_posting_title
      FROM job_applicants
      JOIN job_postings ON job_postings.id = job_applicants.job_posting_id
@@ -257,6 +282,46 @@ export async function listAllApplicants(opts: {
     email: row.email,
     phone: row.phone,
     status: row.status,
+    rating: row.rating,
     submittedAt: row.submitted_at,
   }));
+}
+
+export async function setApplicantRating(
+  applicantId: number,
+  rating: ApplicantRating,
+  staffId: number
+): Promise<void> {
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE job_applicants SET rating = ? WHERE id = ?", [rating, applicantId]);
+
+    await logAudit(conn, {
+      staffId,
+      action: "job_applicant.rated",
+      entity: "job_applicant",
+      entityId: applicantId,
+      detail: { rating },
+    });
+  });
+}
+
+/** Applies the same status to multiple applicants in one go, e.g. rejecting
+ * a batch of unsuitable candidates -- each still gets its own history row,
+ * audit entry, and (where applicable) status email, same as a single update. */
+export async function bulkUpdateApplicantStatus(params: {
+  applicantIds: number[];
+  status: ApplicantStatus;
+  staffId: number;
+}): Promise<{ email: string; fullName: string; jobPostingTitle: string }[]> {
+  const results = [];
+  for (const applicantId of params.applicantIds) {
+    results.push(
+      await updateApplicantStatus({
+        applicantId,
+        status: params.status,
+        staffId: params.staffId,
+      })
+    );
+  }
+  return results;
 }

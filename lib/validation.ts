@@ -223,10 +223,32 @@ export const jobApplicationSchema = z.object({
   coverLetter: z.string().max(3000).optional(),
 });
 
+export const checkApplicationStatusSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+});
+
+export const jobAlertSignupSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+});
+
 export const updateApplicantStatusSchema = z.object({
   applicantId: z.coerce.number().int().positive(),
   status: z.enum(["new", "screening", "interview", "offer", "hired", "rejected"], {
     message: "Choose a status",
   }),
   notes: z.string().optional(),
+});
+
+export const setApplicantRatingSchema = z.object({
+  applicantId: z.coerce.number().int().positive(),
+  rating: z.enum(["unrated", "strong", "maybe", "not_fit"], {
+    message: "Choose a rating",
+  }),
+});
+
+export const bulkUpdateApplicantStatusSchema = z.object({
+  applicantIds: z.array(z.coerce.number().int().positive()).min(1, "Select at least one applicant"),
+  status: z.enum(["new", "screening", "interview", "offer", "hired", "rejected"], {
+    message: "Choose a status",
+  }),
 });
