@@ -32,11 +32,17 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   });
 }
 
-export async function sendOtpEmail(to: string, code: string, purpose: "apply" | "portal_login") {
+export async function sendOtpEmail(
+  to: string,
+  code: string,
+  purpose: "apply" | "portal_login" | "job_application"
+) {
   const context =
     purpose === "apply"
       ? "to confirm this email address for your loan application"
-      : "to log in to your Cham Business account";
+      : purpose === "job_application"
+        ? "to confirm this email address for your job application"
+        : "to log in to your Cham Business account";
 
   await transporter.sendMail({
     from: process.env.SMTP_FROM,
