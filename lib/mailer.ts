@@ -78,7 +78,11 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     to,
     subject: "Reset your Cham Business admin password",
     text: `We received a request to reset your password. Open this link to choose a new one (valid for 1 hour):\n\n${resetUrl}\n\nIf you didn't request this, you can ignore this email.`,
-    html: `<p>We received a request to reset your password. Click below to choose a new one (valid for 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>If you didn't request this, you can ignore this email.</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 8px;">We received a request to reset your password.</p>
+        <p style="margin:0;color:#5a6478;">This link is valid for 1 hour. If you didn't request this, you can safely ignore this email.</p>`,
+      cta: { label: "Reset password", url: resetUrl },
+    }),
   });
 }
 
@@ -116,7 +120,11 @@ export async function sendPortalAccessEmail(to: string, fullName: string) {
     to,
     subject: "Your Cham Business account is ready",
     text: `Dear ${fullName},\n\nYou can now track your loan and payments online. Visit ${loginUrl} and enter this email address to receive a one-time login code -- no password needed.\n\nCham Business Ltd`,
-    html: `<p>Dear ${fullName},</p><p>You can now track your loan and payments online. Visit <a href="${loginUrl}">${loginUrl}</a> and enter this email address to receive a one-time login code -- no password needed.</p><p>Cham Business Ltd</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 16px;">Dear ${fullName},</p>
+        <p style="margin:0;">You can now track your loan and payments online. Enter this email address on the portal login page to receive a one-time login code -- no password needed.</p>`,
+      cta: { label: "Go to your portal", url: loginUrl },
+    }),
   });
 }
 
@@ -133,7 +141,13 @@ export async function sendApplicationApprovedEmail(
     to,
     subject: "Your Cham Business loan application has been approved",
     text: `Dear ${fullName},\n\nGood news -- your loan application has been approved: RWF ${amount} over ${termMonths} months.\n\nNext steps: our team will be in touch to finish your paperwork and arrange disbursement. If you signed for this loan and haven't yet received funds, you may cancel free of charge within 30 days of approval by contacting us.\n\nCham Business Ltd`,
-    html: `<p>Dear ${fullName},</p><p>Good news — your loan application has been approved: <strong>RWF ${amount}</strong> over <strong>${termMonths} months</strong>.</p><p>Next steps: our team will be in touch to finish your paperwork and arrange disbursement. If you signed for this loan and haven't yet received funds, you may cancel free of charge within 30 days of approval by contacting us.</p><p>Cham Business Ltd</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 16px;">Dear ${fullName},</p>
+        <p style="margin:0 0 16px;">Good news -- your loan application has been approved:</p>
+        <p style="margin:0 0 16px;text-align:center;font-size:22px;font-weight:700;color:#1b4a8f;">RWF ${amount} <span style="font-size:15px;font-weight:400;color:#5a6478;">over ${termMonths} months</span></p>
+        <p style="margin:0;color:#5a6478;">Next steps: our team will be in touch to finish your paperwork and arrange disbursement. If you signed for this loan and haven't yet received funds, you may cancel free of charge within 30 days of approval by contacting us.</p>`,
+      cta: { label: "Go to your portal", url: `${process.env.APP_URL}/portal/login` },
+    }),
   });
 }
 
@@ -143,7 +157,12 @@ export async function sendApplicationRejectedEmail(to: string, fullName: string,
     to,
     subject: "Update on your Cham Business loan application",
     text: `Dear ${fullName},\n\nWe're unable to approve your loan application at this time.\n\nReason: ${reason}\n\nYou're welcome to apply again once your circumstances change, or contact us if you'd like guidance on what to improve for next time.\n\nCham Business Ltd`,
-    html: `<p>Dear ${fullName},</p><p>We're unable to approve your loan application at this time.</p><p><strong>Reason:</strong> ${reason}</p><p>You're welcome to apply again once your circumstances change, or contact us if you'd like guidance on what to improve for next time.</p><p>Cham Business Ltd</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 16px;">Dear ${fullName},</p>
+        <p style="margin:0 0 16px;">We're unable to approve your loan application at this time.</p>
+        <p style="margin:0 0 16px;"><strong>Reason:</strong> ${reason}</p>
+        <p style="margin:0;">You're welcome to apply again once your circumstances change, or contact us if you'd like guidance on what to improve for next time.</p>`,
+    }),
   });
 }
 
@@ -158,7 +177,10 @@ export async function sendGuarantorRepaymentNoticeEmail(
     to,
     subject: "Cham Business: the loan you guaranteed has been fully repaid",
     text: `Dear ${guarantorName},\n\nThis is to inform you that ${borrowerName}'s loan, which you guaranteed, has been fully repaid. Your guarantee obligation for this loan has ended.\n\nCham Business Ltd`,
-    html: `<p>Dear ${guarantorName},</p><p>This is to inform you that ${borrowerName}'s loan, which you guaranteed, has been fully repaid. Your guarantee obligation for this loan has ended.</p><p>Cham Business Ltd</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 16px;">Dear ${guarantorName},</p>
+        <p style="margin:0;">This is to inform you that ${borrowerName}'s loan, which you guaranteed, has been fully repaid. Your guarantee obligation for this loan has ended.</p>`,
+    }),
   });
 }
 
@@ -283,7 +305,10 @@ export async function sendOverdueReminderEmail(
     .map((i) => `- ${dateStr(i.dueDate)}: RWF ${i.amountOverdue.toLocaleString()}`)
     .join("\n");
   const htmlItems = installments
-    .map((i) => `<li>${dateStr(i.dueDate)}: RWF ${i.amountOverdue.toLocaleString()}</li>`)
+    .map(
+      (i) =>
+        `<tr><td style="padding:6px 0;color:#5a6478;">${dateStr(i.dueDate)}</td><td style="padding:6px 0;text-align:right;font-weight:600;">RWF ${i.amountOverdue.toLocaleString()}</td></tr>`
+    )
     .join("");
 
   await transporter.sendMail({
@@ -291,6 +316,13 @@ export async function sendOverdueReminderEmail(
     to,
     subject: "Cham Business: overdue loan instalment reminder",
     text: `Dear ${borrowerName},\n\nOur records show the following instalment(s) are now overdue:\n\n${textLines}\n\nTotal overdue: RWF ${total.toLocaleString()}\n\nPlease make payment as soon as possible, or contact us to discuss your repayment plan.\n\nCham Business Ltd`,
-    html: `<p>Dear ${borrowerName},</p><p>Our records show the following instalment(s) are now overdue:</p><ul>${htmlItems}</ul><p>Total overdue: RWF ${total.toLocaleString()}</p><p>Please make payment as soon as possible, or contact us to discuss your repayment plan.</p><p>Cham Business Ltd</p>`,
+    html: renderEmailShell({
+      bodyHtml: `<p style="margin:0 0 16px;">Dear ${borrowerName},</p>
+        <p style="margin:0 0 12px;">Our records show the following instalment(s) are now overdue:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e7e3db;border-bottom:1px solid #e7e3db;margin:0 0 16px;font-size:14px;">${htmlItems}</table>
+        <p style="margin:0 0 16px;">Total overdue: <strong style="color:#a32d2d;">RWF ${total.toLocaleString()}</strong></p>
+        <p style="margin:0;color:#5a6478;">Please make payment as soon as possible, or contact us to discuss your repayment plan.</p>`,
+      cta: { label: "Go to your portal", url: `${process.env.APP_URL}/portal/login` },
+    }),
   });
 }
