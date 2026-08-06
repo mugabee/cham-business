@@ -17,7 +17,23 @@ import {
   setApplicantRatingSchema,
   bulkUpdateApplicantStatusSchema,
 } from "@/lib/validation";
-import { sendJobApplicationStatusEmail, sendNewJobAlertEmail } from "@/lib/mailer";
+import {
+  sendJobInterviewInviteEmail,
+  sendJobOfferEmail,
+  sendJobApplicationRejectedEmail,
+  sendNewJobAlertEmail,
+} from "@/lib/mailer";
+
+function sendApplicantStatusEmail(
+  status: "interview" | "offer" | "rejected",
+  email: string,
+  fullName: string,
+  jobPostingTitle: string
+) {
+  if (status === "interview") return sendJobInterviewInviteEmail(email, fullName, jobPostingTitle);
+  if (status === "offer") return sendJobOfferEmail(email, fullName, jobPostingTitle);
+  return sendJobApplicationRejectedEmail(email, fullName, jobPostingTitle);
+}
 
 function parsePostingInput(formData: FormData) {
   return jobPostingSchema.safeParse({
@@ -136,11 +152,11 @@ export async function updateApplicantStatusAction(
   });
 
   if (result.data.status === "interview" || result.data.status === "offer" || result.data.status === "rejected") {
-    await sendJobApplicationStatusEmail(
+    await sendApplicantStatusEmail(
+      result.data.status,
       applicant.email,
       applicant.fullName,
-      applicant.jobPostingTitle,
-      result.data.status
+      applicant.jobPostingTitle
     ).catch(() => {
       // Status change already saved -- a flaky SMTP send shouldn't block the pipeline.
     });
@@ -195,14 +211,10 @@ export async function bulkUpdateApplicantStatusAction(
   });
 
   if (result.data.status === "interview" || result.data.status === "offer" || result.data.status === "rejected") {
+    const status = result.data.status;
     await Promise.all(
       updated.map((applicant) =>
-        sendJobApplicationStatusEmail(
-          applicant.email,
-          applicant.fullName,
-          applicant.jobPostingTitle,
-          result.data.status as "interview" | "offer" | "rejected"
-        ).catch(() => {
+        sendApplicantStatusEmail(status, applicant.email, applicant.fullName, applicant.jobPostingTitle).catch(() => {
           // Status changes already saved -- a flaky SMTP send shouldn't block the pipeline.
         })
       )

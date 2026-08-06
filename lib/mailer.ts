@@ -132,30 +132,38 @@ export async function sendJobApplicationReceivedEmail(
     from: process.env.SMTP_FROM,
     to,
     subject: `We've received your application: ${jobTitle}`,
-    text: `Dear ${fullName},\n\nThank you for applying for the ${jobTitle} position at Cham Business Ltd. We've received your application and resume, and our team will review it shortly. We'll be in touch if we'd like to move forward.\n\nCham Business Ltd`,
-    html: `<p>Dear ${fullName},</p><p>Thank you for applying for the <strong>${jobTitle}</strong> position at Cham Business Ltd. We've received your application and resume, and our team will review it shortly. We'll be in touch if we'd like to move forward.</p><p>Cham Business Ltd</p>`,
+    text: `Dear ${fullName},\n\nThank you for your interest in the ${jobTitle} position at Cham Business Ltd. We've successfully received your application and resume.\n\nOur team carefully reviews every application, and we'll be in touch as soon as we've had a chance to go through yours. We appreciate the time you took to apply, and we wish you the best.\n\nWarm regards,\nThe Cham Business Ltd Team`,
+    html: `<p>Dear ${fullName},</p><p>Thank you for your interest in the <strong>${jobTitle}</strong> position at Cham Business Ltd. We've successfully received your application and resume.</p><p>Our team carefully reviews every application, and we'll be in touch as soon as we've had a chance to go through yours. We appreciate the time you took to apply, and we wish you the best.</p><p>Warm regards,<br>The Cham Business Ltd Team</p>`,
   });
 }
 
-const APPLICANT_STATUS_MESSAGE: Record<string, string> = {
-  interview: "We'd like to invite you for an interview. Our team will contact you shortly to arrange a time.",
-  offer: "We're pleased to let you know we'd like to offer you this role. Our team will be in touch with the details.",
-  rejected: "We've decided not to move forward with your application on this occasion.",
-};
+export async function sendJobInterviewInviteEmail(to: string, fullName: string, jobTitle: string) {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `You're invited to interview: ${jobTitle}`,
+    text: `Dear ${fullName},\n\nThank you for your patience during our review process. We were impressed by your application for the ${jobTitle} position, and we'd like to invite you to the next stage: an interview.\n\nA member of our team will reach out shortly to arrange a time that works for you. In the meantime, if you have any questions, feel free to reply to this email.\n\nWe look forward to speaking with you.\n\nWarm regards,\nThe Cham Business Ltd Team`,
+    html: `<p>Dear ${fullName},</p><p>Thank you for your patience during our review process. We were impressed by your application for the <strong>${jobTitle}</strong> position, and we'd like to invite you to the next stage: an interview.</p><p>A member of our team will reach out shortly to arrange a time that works for you. In the meantime, if you have any questions, feel free to reply to this email.</p><p>We look forward to speaking with you.</p><p>Warm regards,<br>The Cham Business Ltd Team</p>`,
+  });
+}
 
-export async function sendJobApplicationStatusEmail(
-  to: string,
-  fullName: string,
-  jobTitle: string,
-  status: "interview" | "offer" | "rejected"
-) {
-  const message = APPLICANT_STATUS_MESSAGE[status];
+export async function sendJobOfferEmail(to: string, fullName: string, jobTitle: string) {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: `An offer for you: ${jobTitle} at Cham Business Ltd`,
+    text: `Dear ${fullName},\n\nCongratulations! We're pleased to offer you the ${jobTitle} position at Cham Business Ltd. Your background and the impression you made throughout our process stood out to us, and we're excited about the possibility of you joining our team.\n\nA member of our team will be in touch shortly with the full details of the offer and next steps.\n\nCongratulations again, and welcome aboard.\n\nWarm regards,\nThe Cham Business Ltd Team`,
+    html: `<p>Dear ${fullName},</p><p>Congratulations! We're pleased to offer you the <strong>${jobTitle}</strong> position at Cham Business Ltd. Your background and the impression you made throughout our process stood out to us, and we're excited about the possibility of you joining our team.</p><p>A member of our team will be in touch shortly with the full details of the offer and next steps.</p><p>Congratulations again, and welcome aboard.</p><p>Warm regards,<br>The Cham Business Ltd Team</p>`,
+  });
+}
+
+export async function sendJobApplicationRejectedEmail(to: string, fullName: string, jobTitle: string) {
   await transporter.sendMail({
     from: process.env.SMTP_FROM,
     to,
     subject: `Update on your application: ${jobTitle}`,
-    text: `Dear ${fullName},\n\nAn update on your application for the ${jobTitle} position at Cham Business Ltd.\n\n${message}\n\nCham Business Ltd`,
-    html: `<p>Dear ${fullName},</p><p>An update on your application for the <strong>${jobTitle}</strong> position at Cham Business Ltd.</p><p>${message}</p><p>Cham Business Ltd</p>`,
+    text: `Dear ${fullName},\n\nThank you for taking the time to apply for the ${jobTitle} position at Cham Business Ltd, and for your patience throughout our review process.\n\nAfter careful consideration, we've decided to move forward with other candidates whose experience more closely matches what we're looking for at this time. This was not an easy decision, and it does not reflect on your qualifications or potential.\n\nWe encourage you to apply for future openings that match your background, and we wish you every success in your search.\n\nWarm regards,\nThe Cham Business Ltd Team`,
+    html: `<p>Dear ${fullName},</p><p>Thank you for taking the time to apply for the <strong>${jobTitle}</strong> position at Cham Business Ltd, and for your patience throughout our review process.</p><p>After careful consideration, we've decided to move forward with other candidates whose experience more closely matches what we're looking for at this time. This was not an easy decision, and it does not reflect on your qualifications or potential.</p><p>We encourage you to apply for future openings that match your background, and we wish you every success in your search.</p><p>Warm regards,<br>The Cham Business Ltd Team</p>`,
   });
 }
 
