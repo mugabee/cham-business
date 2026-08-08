@@ -16,6 +16,15 @@ export const company = {
     "Cham Business Ltd is an equal-opportunity employer. We consider every application on its merits, regardless of gender, ethnicity, religion, disability, or any other characteristic unrelated to the role.",
 };
 
+// Every job applicant answers these on video and sends the clip to our
+// WhatsApp number -- see components/JobApplicationForm.tsx.
+export const videoInterviewQuestions = [
+  "Tell us about yourself and your background.",
+  "Why do you want to work at Cham Business Ltd?",
+  "Describe a challenge you've faced and how you handled it.",
+  "Why should we choose you for this role?",
+];
+
 export type LoanProduct = {
   slug: string;
   name: string;

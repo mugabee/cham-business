@@ -101,7 +101,7 @@ export default async function JobPostingPage({
 
         <div className="mt-10 rounded-3xl border border-[var(--color-line)] bg-white p-8">
           <h2 className="font-display text-xl font-bold text-[var(--color-ink)] mb-6">Apply for this role</h2>
-          <JobApplicationForm jobPostingId={posting.id} />
+          <JobApplicationForm jobPostingId={posting.id} jobTitle={posting.title} />
         </div>
       </section>
     </>
