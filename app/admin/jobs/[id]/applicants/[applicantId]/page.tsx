@@ -8,6 +8,7 @@ import ApplicantPipelineControl from "@/components/admin/ApplicantPipelineContro
 import ApplicantStatusHistory from "@/components/admin/ApplicantStatusHistory";
 import ApplicantRatingControl from "@/components/admin/ApplicantRatingControl";
 import ApplicantWhatsAppButton from "@/components/admin/ApplicantWhatsAppButton";
+import VideoInterviewRequestButton from "@/components/admin/VideoInterviewRequestButton";
 
 const applicantTone = {
   new: "warning",
@@ -56,13 +57,20 @@ export default async function JobApplicantDetailPage({
         <div>
           <p className="text-ink-soft">Phone</p>
           <p className="text-ink">{applicant.phone}</p>
-          <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap gap-2">
             <ApplicantWhatsAppButton
               phone={applicant.phone}
               fullName={applicant.fullName}
               jobPostingTitle={applicant.jobPostingTitle}
               status={applicant.status}
             />
+            {applicant.status === "interview" && (
+              <VideoInterviewRequestButton
+                phone={applicant.phone}
+                fullName={applicant.fullName}
+                jobPostingTitle={applicant.jobPostingTitle}
+              />
+            )}
           </div>
         </div>
         <div>

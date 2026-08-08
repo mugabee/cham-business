@@ -1,14 +1,7 @@
 "use client";
 import { useState } from "react";
-import { company, videoInterviewQuestions } from "@/lib/site";
 
-export default function JobApplicationForm({
-  jobPostingId,
-  jobTitle,
-}: {
-  jobPostingId: number;
-  jobTitle: string;
-}) {
+export default function JobApplicationForm({ jobPostingId }: { jobPostingId: number }) {
   const [stage, setStage] = useState<"form" | "otp" | "done">("form");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -84,9 +77,6 @@ export default function JobApplicationForm({
   }
 
   if (stage === "done") {
-    const whatsappMessage = `Hi, I'm sending my video interview answers for the ${jobTitle} position. My name is ${fullName}.`;
-    const whatsappUrl = `https://wa.me/${company.whatsapp.replace("+", "")}?text=${encodeURIComponent(whatsappMessage)}`;
-
     return (
       <div className="rounded-3xl border border-[var(--color-line)] bg-white p-10 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--color-brand-wash)]">
@@ -96,34 +86,9 @@ export default function JobApplicationForm({
         </div>
         <h2 className="mt-5 font-display text-2xl font-bold text-[var(--color-ink)]">Application received</h2>
         <p className="mx-auto mt-3 max-w-md text-[var(--color-ink-soft)]">
-          Thank you for applying. We've emailed you a confirmation.
+          Thank you for applying. We've emailed you a confirmation, and our team will be in touch if we'd
+          like to move forward.
         </p>
-
-        <div className="mx-auto mt-8 max-w-md rounded-2xl border border-[var(--color-line)] bg-[var(--color-paper-deep)] p-6 text-left">
-          <p className="font-semibold text-[var(--color-ink)]">One more step: a short video</p>
-          <p className="mt-1.5 text-sm text-[var(--color-ink-soft)]">
-            Record yourself answering these 4 questions, then send the video to us on WhatsApp.
-          </p>
-          <ol className="mt-4 space-y-2 text-sm text-[var(--color-ink)]">
-            {videoInterviewQuestions.map((q, i) => (
-              <li key={i} className="flex gap-2.5">
-                <span className="font-semibold text-[var(--color-brand)]">{i + 1}.</span>
-                <span>{q}</span>
-              </li>
-            ))}
-          </ol>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#1ebe5d]"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5 fill-white">
-              <path d="M16 .4C7.4.4.4 7.4.4 16c0 2.8.7 5.4 2 7.7L.3 31.6l8.2-2.1A15.6 15.6 0 0 0 16 31.6C24.6 31.6 31.6 24.6 31.6 16S24.6.4 16 .4zm0 28.4a13 13 0 0 1-6.6-1.8l-.5-.3-4.9 1.3 1.3-4.7-.3-.5A13 13 0 1 1 16 28.8zm7.1-9.7c-.4-.2-2.3-1.1-2.6-1.3-.4-.1-.6-.2-.9.2-.3.4-1 1.3-1.2 1.5-.2.2-.5.3-.9.1a11 11 0 0 1-3.2-2 12 12 0 0 1-2.2-2.8c-.2-.4 0-.6.2-.8l.6-.7.4-.7v-.7l-1.2-2.9c-.3-.7-.6-.6-.9-.6h-.7c-.3 0-.7.1-1 .4-.4.4-1.4 1.4-1.4 3.3 0 2 1.5 3.9 1.7 4.1.2.3 2.9 4.4 7 6.2 1 .4 1.7.7 2.3.9.97.3 1.86.26 2.56.16.78-.12 2.3-.94 2.63-1.85.32-.9.32-1.68.22-1.85-.1-.16-.33-.26-.7-.46z" />
-            </svg>
-            Send video on WhatsApp
-          </a>
-        </div>
       </div>
     );
   }
@@ -177,10 +142,6 @@ export default function JobApplicationForm({
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); requestCode(); }} className="space-y-5" noValidate>
-      <p className="rounded-xl bg-[var(--color-brand-wash)] px-4 py-3 text-sm text-[var(--color-brand-deep)]">
-        After you apply, we'll ask you to answer 4 short questions on video and send it to us on WhatsApp.
-      </p>
-
       <div>
         <label htmlFor="fullName" className={label}>Full name</label>
         <input
