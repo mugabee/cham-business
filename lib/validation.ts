@@ -231,6 +231,12 @@ export const jobAlertSignupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
 });
 
+export const sendInterviewEmailSchema = z.object({
+  applicantId: z.coerce.number().int().positive(),
+  subject: z.string().min(1, "Enter a subject line"),
+  body: z.string().min(1, "Enter a message"),
+});
+
 export const updateApplicantStatusSchema = z.object({
   applicantId: z.coerce.number().int().positive(),
   status: z.enum(["new", "screening", "interview", "offer", "hired", "rejected"], {

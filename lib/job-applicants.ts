@@ -22,6 +22,15 @@ export type {
 } from "@/lib/job-types";
 export { APPLICANT_STATUS_LABELS, APPLICANT_PIPELINE, APPLICANT_RATING_LABELS } from "@/lib/job-types";
 
+export async function logInterviewEmailSent(applicantId: number, staffId: number): Promise<void> {
+  await logAudit(pool, {
+    staffId,
+    action: "job_applicant.interview_email_sent",
+    entity: "job_applicant",
+    entityId: applicantId,
+  });
+}
+
 export async function createJobApplication(params: {
   jobPostingId: number;
   fullName: string;

@@ -9,19 +9,27 @@ import {
   deleteJobPosting,
   getJobPostingById,
 } from "@/lib/jobs";
-import { updateApplicantStatus, setApplicantRating, bulkUpdateApplicantStatus } from "@/lib/job-applicants";
+import {
+  updateApplicantStatus,
+  setApplicantRating,
+  bulkUpdateApplicantStatus,
+  getJobApplicantById,
+  logInterviewEmailSent,
+} from "@/lib/job-applicants";
 import { listActiveJobAlertSubscribers } from "@/lib/job-alerts";
 import {
   jobPostingSchema,
   updateApplicantStatusSchema,
   setApplicantRatingSchema,
   bulkUpdateApplicantStatusSchema,
+  sendInterviewEmailSchema,
 } from "@/lib/validation";
 import {
   sendJobInterviewInviteEmail,
   sendJobOfferEmail,
   sendJobApplicationRejectedEmail,
   sendNewJobAlertEmail,
+  sendCustomStaffEmail,
 } from "@/lib/mailer";
 
 function sendApplicantStatusEmail(
@@ -187,6 +195,37 @@ export async function setApplicantRatingAction(
   const jobPostingId = formData.get("jobPostingId");
   revalidatePath(`/admin/jobs/${jobPostingId}/applicants/${result.data.applicantId}`);
   revalidatePath("/admin/jobs/applicants");
+  return { success: true };
+}
+
+export async function sendInterviewEmailAction(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+) {
+  const session = await verifySession();
+
+  const result = sendInterviewEmailSchema.safeParse({
+    applicantId: formData.get("applicantId"),
+    subject: formData.get("subject"),
+    body: formData.get("body"),
+  });
+  if (!result.success) {
+    return { error: result.error.issues[0]?.message ?? "Invalid submission." };
+  }
+
+  const applicant = await getJobApplicantById(result.data.applicantId);
+  if (!applicant) {
+    return { error: "Applicant not found." };
+  }
+
+  try {
+    await sendCustomStaffEmail(applicant.email, result.data.subject, result.data.body, "careers@chambusiness.org");
+  } catch {
+    return { error: "Couldn't send the email. Please try again." };
+  }
+
+  await logInterviewEmailSent(result.data.applicantId, session.userId);
+
   return { success: true };
 }
 

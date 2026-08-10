@@ -72,6 +72,40 @@ function renderEmailShell(opts: {
   </div>`;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Free-text email composed by staff (e.g. an interview-details message),
+ * rather than a fixed template -- so the body is escaped and each blank
+ * line becomes a paragraph break, but otherwise sent as written.
+ */
+export async function sendCustomStaffEmail(
+  to: string,
+  subject: string,
+  bodyText: string,
+  replyTo?: string
+) {
+  const bodyHtml = bodyText
+    .split(/\n{2,}/)
+    .map((para) => `<p style="margin:0 0 14px;white-space:pre-wrap;">${escapeHtml(para)}</p>`)
+    .join("");
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    replyTo,
+    subject,
+    text: bodyText,
+    html: renderEmailShell({ bodyHtml }),
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   await transporter.sendMail({
     from: process.env.SMTP_FROM,

@@ -1,0 +1,100 @@
+"use client";
+import { useState, useActionState } from "react";
+import { sendInterviewEmailAction } from "@/app/actions/jobs";
+
+function defaultBody(fullName: string, jobTitle: string): string {
+  return `Dear ${fullName},
+
+Thank you for your interest in the ${jobTitle} position at Cham Business Ltd.
+
+We are pleased to inform you that you have been selected to proceed to the next stage of the recruitment process.
+
+Before we move forward, we would like to share the key details of the role so you can confirm that you are still interested:
+
+- Working days: [e.g. 2 to 3 days per week -- we are flexible and can discuss the most suitable days for you]
+- Salary: [e.g. the monthly allowance for this role is ... RWF]
+- Main work: [describe the main responsibility]
+
+At Cham Business Ltd, we value our team members and support their growth. This role offers practical experience, helps you develop strong skills, and builds a solid foundation for your career. We maintain a friendly and supportive working environment where contribution and effort are appreciated.
+
+About the next step:
+Our interview process is a practical exercise that includes both a written response and a short recorded video. This helps us understand how you would handle real situations in the field.
+
+Please reply to this email confirming that:
+1. You understand and accept the working days,
+2. You understand and accept the salary,
+3. You are still interested in proceeding with this opportunity.
+
+Once you confirm, kindly let us know when you are available to complete the interview exercise. You may also share the method that is most comfortable for you.
+
+We look forward to your response.
+
+Best regards,
+Recruitment Team
+Cham Business Ltd`;
+}
+
+export default function InterviewEmailForm({
+  applicantId,
+  fullName,
+  jobTitle,
+}: {
+  applicantId: number;
+  jobPostingId: number;
+  fullName: string;
+  jobTitle: string;
+}) {
+  const [state, formAction, pending] = useActionState(sendInterviewEmailAction, undefined);
+  const [subject, setSubject] = useState(`${jobTitle} – Confirmation & Interview Availability`);
+  const [body, setBody] = useState(defaultBody(fullName, jobTitle));
+
+  const field =
+    "w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
+  const label = "block text-sm font-medium text-ink mb-1";
+
+  if (state?.success) {
+    return (
+      <p className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+        Email sent to {fullName}.
+      </p>
+    );
+  }
+
+  return (
+    <form action={formAction} className="bg-white rounded-2xl border border-line p-5 space-y-4">
+      <input type="hidden" name="applicantId" value={applicantId} />
+      <h2 className="font-semibold text-ink">Send interview details email</h2>
+      <p className="text-xs text-ink-soft">
+        Review and fill in the bracketed details (working days, salary, main work) before sending --
+        they're specific to this role, so nothing is sent automatically.
+      </p>
+
+      <div>
+        <label className={label}>Subject</label>
+        <input name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required className={field} />
+      </div>
+
+      <div>
+        <label className={label}>Message</label>
+        <textarea
+          name="body"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          required
+          rows={18}
+          className={`${field} font-mono text-xs leading-relaxed`}
+        />
+      </div>
+
+      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
+      >
+        {pending ? "Sending…" : "Send email"}
+      </button>
+    </form>
+  );
+}

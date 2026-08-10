@@ -8,7 +8,7 @@ import ApplicantPipelineControl from "@/components/admin/ApplicantPipelineContro
 import ApplicantStatusHistory from "@/components/admin/ApplicantStatusHistory";
 import ApplicantRatingControl from "@/components/admin/ApplicantRatingControl";
 import ApplicantWhatsAppButton from "@/components/admin/ApplicantWhatsAppButton";
-import VideoInterviewRequestButton from "@/components/admin/VideoInterviewRequestButton";
+import InterviewEmailForm from "@/components/admin/InterviewEmailForm";
 
 const applicantTone = {
   new: "warning",
@@ -57,20 +57,13 @@ export default async function JobApplicantDetailPage({
         <div>
           <p className="text-ink-soft">Phone</p>
           <p className="text-ink">{applicant.phone}</p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
+          <div className="mt-1.5">
             <ApplicantWhatsAppButton
               phone={applicant.phone}
               fullName={applicant.fullName}
               jobPostingTitle={applicant.jobPostingTitle}
               status={applicant.status}
             />
-            {applicant.status === "interview" && (
-              <VideoInterviewRequestButton
-                phone={applicant.phone}
-                fullName={applicant.fullName}
-                jobPostingTitle={applicant.jobPostingTitle}
-              />
-            )}
           </div>
         </div>
         <div>
@@ -108,6 +101,17 @@ export default async function JobApplicantDetailPage({
           currentNotes={applicant.notes}
         />
       </div>
+
+      {applicant.status === "interview" && (
+        <div className="mt-6">
+          <InterviewEmailForm
+            applicantId={applicant.id}
+            jobPostingId={applicant.jobPostingId}
+            fullName={applicant.fullName}
+            jobTitle={applicant.jobPostingTitle}
+          />
+        </div>
+      )}
     </div>
   );
 }
