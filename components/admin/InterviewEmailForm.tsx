@@ -11,18 +11,18 @@ We are pleased to inform you that you have been selected to proceed to the next 
 
 Before we move forward, we would like to share the key details of the role so you can confirm that you are still interested:
 
-- Working days: [e.g. 2 to 3 days per week -- we are flexible and can discuss the most suitable days for you]
-- Salary: [e.g. the monthly allowance for this role is ... RWF]
-- Main work: [describe the main responsibility]
+- Working days: You will work 2 to 3 days per week (we are flexible and can discuss the most suitable days for you).
+- Salary: The monthly allowance for this internship is 100,000 RWF.
+- Main work: Your main responsibility will be to go to crowded places such as markets, taxi parks, and other busy areas to identify and talk to potential clients, introduce them to Cham's quick loan services, collect their contact details, and follow them up. You will also prepare a short daily report and submit it to your supervisor.
 
-At Cham Business Ltd, we value our team members and support their growth. This role offers practical experience, helps you develop strong skills, and builds a solid foundation for your career. We maintain a friendly and supportive working environment where contribution and effort are appreciated.
+At Cham Business Ltd, we value our team members and support their growth. This internship offers practical field experience, helps you develop strong communication and sales skills, and builds a solid foundation for a future career in sales, marketing, or financial services. We maintain a friendly and supportive working environment where contribution and effort are appreciated.
 
 About the next step:
 Our interview process is a practical exercise that includes both a written response and a short recorded video. This helps us understand how you would handle real situations in the field.
 
 Please reply to this email confirming that:
-1. You understand and accept the working days,
-2. You understand and accept the salary,
+1. You understand and accept the working days (2-3 days per week),
+2. You understand and accept the salary of 100,000 RWF,
 3. You are still interested in proceeding with this opportunity.
 
 Once you confirm, kindly let us know when you are available to complete the interview exercise. You may also share the method that is most comfortable for you.
@@ -65,8 +65,8 @@ export default function InterviewEmailForm({
       <input type="hidden" name="applicantId" value={applicantId} />
       <h2 className="font-semibold text-ink">Send interview details email</h2>
       <p className="text-xs text-ink-soft">
-        Review and fill in the bracketed details (working days, salary, main work) before sending --
-        they're specific to this role, so nothing is sent automatically.
+        Pre-filled for the Sales &amp; Marketing Intern role -- edit the working days, salary, or main
+        work if this is for a different position, then review before sending.
       </p>
 
       <div>
