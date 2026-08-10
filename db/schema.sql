@@ -313,6 +313,7 @@ CREATE TABLE IF NOT EXISTS job_applicants (
   submitted_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   reviewed_by               INT NULL,
   reviewed_at               DATETIME NULL,
+  interview_email_sent_at   DATETIME NULL,
   FOREIGN KEY (job_posting_id) REFERENCES job_postings(id) ON DELETE CASCADE,
   FOREIGN KEY (reviewed_by) REFERENCES staff(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;

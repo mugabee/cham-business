@@ -77,6 +77,7 @@ export type JobApplicantSummary = {
   status: ApplicantStatus;
   rating: ApplicantRating;
   submittedAt: Date;
+  interviewEmailSentAt: Date | null;
 };
 
 export type JobApplicantDetail = JobApplicantSummary & {

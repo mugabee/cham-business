@@ -128,6 +128,11 @@ export default async function JobPostingDetailPage({
                 <td className="px-4 py-3 text-ink-soft">{formatDate(applicant.submittedAt)}</td>
                 <td className="px-4 py-3">
                   <StatusBadge label={APPLICANT_STATUS_LABELS[applicant.status]} tone={applicantTone[applicant.status]} />
+                  {applicant.status === "interview" && (
+                    <p className="mt-1 text-xs text-ink-soft">
+                      {applicant.interviewEmailSentAt ? "✓ Interview email sent" : "Interview email not sent"}
+                    </p>
+                  )}
                 </td>
               </tr>
             ))}

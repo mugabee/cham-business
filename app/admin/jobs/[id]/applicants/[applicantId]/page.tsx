@@ -71,6 +71,14 @@ export default async function JobApplicantDetailPage({
           <p className="text-ink">{formatDate(applicant.submittedAt)}</p>
         </div>
         <div>
+          <p className="text-ink-soft">Interview email</p>
+          <p className="text-ink">
+            {applicant.interviewEmailSentAt
+              ? `Sent ${formatDate(applicant.interviewEmailSentAt)}`
+              : "Not sent yet"}
+          </p>
+        </div>
+        <div>
           <p className="text-ink-soft">Resume</p>
           <a
             href={`/api/admin/job-resumes/${applicant.id}`}
@@ -109,6 +117,7 @@ export default async function JobApplicantDetailPage({
             jobPostingId={applicant.jobPostingId}
             fullName={applicant.fullName}
             jobTitle={applicant.jobPostingTitle}
+            sentAt={applicant.interviewEmailSentAt}
           />
         </div>
       )}

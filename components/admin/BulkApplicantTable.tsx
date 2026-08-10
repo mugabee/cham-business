@@ -106,6 +106,11 @@ export default function BulkApplicantTable({ applicants }: { applicants: JobAppl
                 <td className="px-4 py-3 text-ink-soft">{APPLICANT_RATING_LABELS[applicant.rating]}</td>
                 <td className="px-4 py-3">
                   <StatusBadge label={APPLICANT_STATUS_LABELS[applicant.status]} tone={applicantTone[applicant.status]} />
+                  {applicant.status === "interview" && (
+                    <p className="mt-1 text-xs text-ink-soft">
+                      {applicant.interviewEmailSentAt ? "✓ Emailed" : "Not emailed"}
+                    </p>
+                  )}
                 </td>
               </tr>
             ))}

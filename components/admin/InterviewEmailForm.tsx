@@ -1,6 +1,7 @@
 "use client";
 import { useState, useActionState } from "react";
 import { sendInterviewEmailAction } from "@/app/actions/jobs";
+import { formatDate } from "@/lib/format";
 
 function defaultBody(fullName: string, jobTitle: string): string {
   return `Dear ${fullName},
@@ -38,11 +39,13 @@ export default function InterviewEmailForm({
   applicantId,
   fullName,
   jobTitle,
+  sentAt,
 }: {
   applicantId: number;
   jobPostingId: number;
   fullName: string;
   jobTitle: string;
+  sentAt: Date | null;
 }) {
   const [state, formAction, pending] = useActionState(sendInterviewEmailAction, undefined);
   const [subject, setSubject] = useState(`${jobTitle} – Confirmation & Interview Availability`);
@@ -51,23 +54,29 @@ export default function InterviewEmailForm({
   const field =
     "w-full rounded-lg border border-line px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-soft";
   const label = "block text-sm font-medium text-ink mb-1";
-
-  if (state?.success) {
-    return (
-      <p className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-        Email sent to {fullName}.
-      </p>
-    );
-  }
+  const alreadySent = Boolean(state?.success) || Boolean(sentAt);
 
   return (
     <form action={formAction} className="bg-white rounded-2xl border border-line p-5 space-y-4">
       <input type="hidden" name="applicantId" value={applicantId} />
-      <h2 className="font-semibold text-ink">Send interview details email</h2>
-      <p className="text-xs text-ink-soft">
-        Pre-filled for the Sales &amp; Marketing Intern role -- edit the working days, salary, or main
-        work if this is for a different position, then review before sending.
-      </p>
+      <h2 className="font-semibold text-ink">
+        {alreadySent ? "Resend interview details email" : "Send interview details email"}
+      </h2>
+
+      {state?.success ? (
+        <p className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+          Email sent to {fullName}.
+        </p>
+      ) : sentAt ? (
+        <p className="rounded-lg bg-paper-deep border border-line px-4 py-3 text-sm text-ink-soft">
+          Already sent on {formatDate(sentAt)}. Sending again will email {fullName} a second time.
+        </p>
+      ) : (
+        <p className="text-xs text-ink-soft">
+          Pre-filled for the Sales &amp; Marketing Intern role -- edit the working days, salary, or main
+          work if this is for a different position, then review before sending.
+        </p>
+      )}
 
       <div>
         <label className={label}>Subject</label>
@@ -93,7 +102,7 @@ export default function InterviewEmailForm({
         disabled={pending}
         className="rounded-lg bg-brand hover:bg-brand-deep disabled:opacity-60 text-white text-sm font-medium px-4 py-2 transition-colors"
       >
-        {pending ? "Sending…" : "Send email"}
+        {pending ? "Sending…" : alreadySent ? "Send again" : "Send email"}
       </button>
     </form>
   );

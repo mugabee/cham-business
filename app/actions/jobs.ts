@@ -14,7 +14,7 @@ import {
   setApplicantRating,
   bulkUpdateApplicantStatus,
   getJobApplicantById,
-  logInterviewEmailSent,
+  markInterviewEmailSent,
 } from "@/lib/job-applicants";
 import { listActiveJobAlertSubscribers } from "@/lib/job-alerts";
 import {
@@ -224,7 +224,11 @@ export async function sendInterviewEmailAction(
     return { error: "Couldn't send the email. Please try again." };
   }
 
-  await logInterviewEmailSent(result.data.applicantId, session.userId);
+  await markInterviewEmailSent(result.data.applicantId, session.userId);
+
+  revalidatePath(`/admin/jobs/${applicant.jobPostingId}`);
+  revalidatePath(`/admin/jobs/${applicant.jobPostingId}/applicants/${result.data.applicantId}`);
+  revalidatePath("/admin/jobs/applicants");
 
   return { success: true };
 }
