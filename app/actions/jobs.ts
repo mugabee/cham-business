@@ -198,6 +198,17 @@ export async function setApplicantRatingAction(
   return { success: true };
 }
 
+const ATTACHMENT_ALLOWED_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+const ATTACHMENT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ATTACHMENT_MAX_TOTAL_SIZE = 15 * 1024 * 1024;
+
 export async function sendInterviewEmailAction(
   _prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
@@ -218,8 +229,37 @@ export async function sendInterviewEmailAction(
     return { error: "Applicant not found." };
   }
 
+  const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
+  let totalSize = 0;
+  for (const file of files) {
+    if (!ATTACHMENT_ALLOWED_TYPES.has(file.type)) {
+      return { error: `"${file.name}" isn't a supported file type. Attach a PDF, Word doc, or image.` };
+    }
+    if (file.size > ATTACHMENT_MAX_FILE_SIZE) {
+      return { error: `"${file.name}" is too large (max 5MB per file).` };
+    }
+    totalSize += file.size;
+  }
+  if (totalSize > ATTACHMENT_MAX_TOTAL_SIZE) {
+    return { error: "Attachments are too large in total (max 15MB)." };
+  }
+
+  const attachments = await Promise.all(
+    files.map(async (file) => ({
+      filename: file.name,
+      content: Buffer.from(await file.arrayBuffer()),
+      contentType: file.type,
+    }))
+  );
+
   try {
-    await sendCustomStaffEmail(applicant.email, result.data.subject, result.data.body, "careers@chambusiness.org");
+    await sendCustomStaffEmail(
+      applicant.email,
+      result.data.subject,
+      result.data.body,
+      "careers@chambusiness.org",
+      attachments
+    );
   } catch {
     return { error: "Couldn't send the email. Please try again." };
   }

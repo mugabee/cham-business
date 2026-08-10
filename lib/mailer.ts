@@ -89,7 +89,8 @@ export async function sendCustomStaffEmail(
   to: string,
   subject: string,
   bodyText: string,
-  replyTo?: string
+  replyTo?: string,
+  attachments?: { filename: string; content: Buffer; contentType?: string }[]
 ) {
   const bodyHtml = bodyText
     .split(/\n{2,}/)
@@ -101,6 +102,7 @@ export async function sendCustomStaffEmail(
     to,
     replyTo,
     subject,
+    attachments,
     text: bodyText,
     html: renderEmailShell({ bodyHtml }),
   });

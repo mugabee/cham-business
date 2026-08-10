@@ -95,6 +95,20 @@ export default function InterviewEmailForm({
         />
       </div>
 
+      <div>
+        <label className={label}>
+          Attachments <span className="font-normal text-ink-soft">(optional)</span>
+        </label>
+        <input
+          name="attachments"
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp"
+          className={field}
+        />
+        <p className="mt-1 text-xs text-ink-soft">PDF, Word, or image. Up to 5MB per file, 15MB total.</p>
+      </div>
+
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
       <button
