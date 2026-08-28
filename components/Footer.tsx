@@ -54,6 +54,7 @@ export default function Footer() {
               <li><Link href="/apply" className="hover:text-white">Apply</Link></li>
               <li><Link href="/contract-template" className="hover:text-white">Contract terms</Link></li>
               <li><Link href="/service-charter" className="hover:text-white">Service charter</Link></li>
+              <li><Link href="/complaints" className="hover:text-white">How to complain</Link></li>
             </ul>
           </div>
 
@@ -62,7 +63,17 @@ export default function Footer() {
               Contact
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm text-white/70">
-              <li>{company.address}</li>
+              <li>
+                <a
+                  href={company.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white"
+                >
+                  {company.address}
+                </a>
+              </li>
+              <li>{company.hours}</li>
               <li>
                 <a href={`tel:${company.phone.replace(/\s/g, "")}`} className="hover:text-white">
                   {company.phone}
@@ -72,6 +83,12 @@ export default function Footer() {
                 <a href={`mailto:${company.email}`} className="hover:text-white">
                   {company.email}
                 </a>
+                <span className="block text-xs text-white/45">
+                  Mail bouncing? Try{" "}
+                  <a href={`mailto:${company.altEmail}`} className="hover:text-white/70 underline">
+                    {company.altEmail}
+                  </a>
+                </span>
               </li>
               <li>
                 <a

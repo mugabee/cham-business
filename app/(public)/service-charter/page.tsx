@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { company } from "@/lib/site";
 
@@ -53,12 +54,15 @@ export default function ServiceCharterPage() {
           <p>
             We treat every customer fairly and without discrimination, and we never charge fees that
             aren&apos;t disclosed to you upfront. If we don&apos;t meet one of these commitments, or
-            anything about our service falls short, tell us — use the complaints option in your
-            borrower portal, or contact us directly.
+            anything about our service falls short, tell us. See{" "}
+            <Link href="/complaints" className="text-[var(--color-brand)] hover:underline">
+              how to file a complaint
+            </Link>.
           </p>
           <p>
             Email <a href={`mailto:${company.email}`} className="text-[var(--color-brand)] hover:underline">{company.email}</a> or
-            call <a href={`tel:${company.phone.replace(/\s/g, "")}`} className="text-[var(--color-brand)] hover:underline">{company.phone}</a>.
+            call <a href={`tel:${company.phone.replace(/\s/g, "")}`} className="text-[var(--color-brand)] hover:underline">{company.phone}</a>,
+            {" "}{company.hours}.
           </p>
         </div>
       </section>

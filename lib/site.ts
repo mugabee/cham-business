@@ -4,10 +4,19 @@
 export const company = {
   name: "Cham Business Ltd",
   tagline: "Friendly loans for everyday life",
+  type: "Non-deposit-taking financial services provider (money lending)",
+  regulator: "National Bank of Rwanda (BNR)",
   address: "Kicukiro Modern Market, Kigali, Rwanda",
+  mapUrl: "https://maps.google.com/?q=Kicukiro+Modern+Market+Kigali",
   phone: "+250 780 123 779",
   whatsapp: "+250780123779",
-  email: "chambusinessltd@gmail.com",
+  // Primary public contact address. Falls back to the Gmail address below
+  // if this mailbox isn't receiving mail yet -- confirm it's live before
+  // relying on it (see components/Footer.tsx).
+  email: "info@chambusiness.org",
+  altEmail: "chambusinessltd@gmail.com",
+  hours: "Mon–Sat, 8:00–17:00 (Kigali time)",
+  languages: "Kinyarwanda, English",
   tiktok: "chambusinessltd",
   instagram: "cham_business_ltd",
   registrationNote:

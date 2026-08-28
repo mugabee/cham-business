@@ -83,6 +83,12 @@ const organizationJsonLd = {
   },
   telephone: company.phone,
   email: company.email,
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    opens: "08:00",
+    closes: "17:00",
+  },
 };
 
 export default function RootLayout({
