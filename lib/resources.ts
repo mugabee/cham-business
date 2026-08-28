@@ -16,15 +16,15 @@ export const resources: ResourceArticle[] = [
     title: "How to Get a Personal Loan Fast in Rwanda",
     excerpt:
       "What actually makes a loan application fast or slow, and how to put yourself in the first group.",
-    publishedAt: "2026-08-01",
+    publishedAt: "2026-07-18",
     readingMinutes: 5,
   },
   {
     slug: "salary-loan-vs-emergency-loan",
     title: "Salary Loan vs. Emergency Loan: Which One Do You Need?",
     excerpt:
-      "Two products that solve different problems -- a side-by-side look at when each one actually fits.",
-    publishedAt: "2026-08-01",
+      "A salary loan bridges a predictable gap before payday. An emergency loan covers an unplanned expense right now.",
+    publishedAt: "2026-07-22",
     readingMinutes: 4,
   },
   {
@@ -32,7 +32,7 @@ export const resources: ResourceArticle[] = [
     title: "Documents You Need to Apply for a Loan in Rwanda",
     excerpt:
       "The exact list, for personal and business loans, plus the one fee that's calculated upfront -- no surprises.",
-    publishedAt: "2026-08-01",
+    publishedAt: "2026-07-25",
     readingMinutes: 5,
   },
   {
@@ -40,7 +40,7 @@ export const resources: ResourceArticle[] = [
     title: "How Reducing-Balance Interest Works (and Why It Saves You Money)",
     excerpt:
       "The same 5% rate can cost very different amounts depending on how it's calculated. Here's the difference.",
-    publishedAt: "2026-08-01",
+    publishedAt: "2026-07-29",
     readingMinutes: 6,
   },
   {

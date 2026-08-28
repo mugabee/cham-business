@@ -11,51 +11,30 @@ export const metadata: Metadata = {
 // See app/(public)/page.tsx for why this is forced dynamic.
 export const dynamic = "force-dynamic";
 
-const values = [
-  { title: "Fairness first", text: "We only lend what we believe you can comfortably repay. Your wellbeing matters more than a quick sale." },
-  { title: "Total clarity", text: "Every cost is on the table before you sign. No fine print, no surprise fees." },
-  { title: "Real people", text: "You'll deal with a team that listens. If life happens, we work with you, not against you." },
-];
-
 export default function AboutPage() {
   return (
     <>
       <PageHeader
         eyebrow="About us"
-        title="A lender that puts people first"
-        subtitle="We built Cham Business to make borrowing in Rwanda fairer, clearer, and more human."
+        title="About Cham Business Ltd"
+        subtitle="A non-deposit lender based in Kicukiro, Kigali."
       />
 
       <section className="mx-auto max-w-3xl px-5 py-16">
         <div className="prose-custom space-y-5 text-lg leading-relaxed text-[var(--color-ink-soft)]">
           <p>
             Cham Business Ltd is a registered non-deposit lending institution based
-            in Kigali. We provide personal loans to individuals across Rwanda — for
-            the moments that matter, from school fees to growing a small business.
+            in Kigali. We provide personal loans to individuals across Rwanda, for
+            things like school fees, medical costs, or growing a small business.
           </p>
           <p>
             Being a <strong className="text-[var(--color-ink)]">non-deposit</strong> lender
-            means we don't take savings or deposits from the public. We focus on one
-            thing: lending responsibly and treating every borrower with respect.
+            means we don't take savings or deposits from the public. We only lend.
           </p>
           <p>
-            Too many people meet hidden fees and confusing terms when they need help
-            most. We decided to do it differently — clear costs, fair assessment, and
-            a team that actually talks to you.
+            We publish the full cost of every loan before you sign, and each application
+            is assessed on its own numbers, not a fixed formula.
           </p>
-        </div>
-
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {values.map((v) => (
-            <div key={v.title} className="rounded-3xl border border-[var(--color-line)] bg-white p-6">
-              <h3 className="font-display text-lg font-bold text-[var(--color-ink)]">
-                {v.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-soft)]">
-                {v.text}
-              </p>
-            </div>
-          ))}
         </div>
 
         <div className="mt-14 rounded-3xl bg-[var(--color-brand-wash)] p-8 text-center">

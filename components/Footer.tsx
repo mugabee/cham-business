@@ -10,10 +10,6 @@ export default function Footer() {
             <span className="font-display text-2xl font-bold text-white">
               {company.name}
             </span>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/70">
-              A registered non-deposit lender providing fair, friendly personal
-              loans to individuals across Rwanda.
-            </p>
             <div className="mt-4 flex gap-2">
               <a
                 href={`https://www.tiktok.com/@${company.tiktok}`}

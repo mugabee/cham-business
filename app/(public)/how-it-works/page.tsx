@@ -29,8 +29,8 @@ const steps = [
     text: "Once you accept, funds are disbursed quickly, usually the same day, straight to your mobile money or bank account.",
   },
   {
-    title: "Repay with ease",
-    text: "Repay in steady instalments. We'll remind you ahead of each due date. If anything changes for you, talk to us early — we'd rather find a solution together.",
+    title: "Repay",
+    text: "Pay in steady instalments. We'll remind you ahead of each due date. If your circumstances change, contact us before you miss a payment.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function HowItWorksPage() {
     <>
       <PageHeader
         eyebrow="How it works"
-        title="From application to funded, simply"
-        subtitle="No jargon, no surprises. Here's exactly what to expect at each step."
+        title="From application to funded"
+        subtitle="Five steps. Here's exactly what happens at each one."
       />
 
       <section className="mx-auto max-w-3xl px-5 py-16">

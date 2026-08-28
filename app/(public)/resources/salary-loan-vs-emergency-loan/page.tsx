@@ -17,12 +17,12 @@ export default function Page() {
   return (
     <ArticleLayout
       article={article}
-      subtitle="Two products that solve different problems -- a side-by-side look at when each one actually fits."
+      subtitle="A salary loan bridges a predictable gap before payday. An emergency loan covers an unplanned expense right now."
     >
       <P>
-        Both are fast, both go straight to your mobile money or bank account, and both carry the
-        same 5% monthly reducing-balance rate. The difference isn't the cost — it's what kind of
-        gap each one is built to cover.
+        Take a Salary Loan if you know the shortfall is coming, on a date you can name. Take an
+        Emergency Loan if something already happened and you need funds today. Both carry the
+        same 5% monthly reducing-balance rate and pay out to your mobile money or bank account.
       </P>
 
       <CompareTable

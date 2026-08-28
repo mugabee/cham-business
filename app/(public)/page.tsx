@@ -1,7 +1,7 @@
 import Link from "next/link";
 import LoanCard from "@/components/LoanCard";
 import Wave from "@/components/Wave";
-import { loanProducts } from "@/lib/site";
+import { loanProducts, company } from "@/lib/site";
 
 // Forced dynamic: static pages on this host get stuck serving pre-deploy
 // content (and referencing since-removed JS chunk hashes) indefinitely,
@@ -22,49 +22,45 @@ export default function Home() {
       <section className="relative overflow-hidden bg-[var(--color-brand)] text-white">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 pb-40 pt-20 md:grid-cols-2 md:pt-28">
           <div>
-            <span className="inline-block rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
-              Registered non-deposit lender · Rwanda
-            </span>
-            <h1 className="mt-6 font-display text-5xl font-extrabold leading-[1.08] tracking-tight md:text-6xl">
-              Money help that
-              <br />
-              <span className="text-[var(--color-accent-soft)]">treats you like a person.</span>
+            <h1 className="font-display text-5xl font-extrabold leading-[1.08] tracking-tight md:text-6xl">
+              Loans from the Kicukiro office.
             </h1>
+            <p className="mt-4 text-sm text-white/70">
+              Non-deposit lender. Office in Kicukiro, Kigali.
+            </p>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85">
-              Cham Business lends to individuals across Rwanda — quickly, clearly,
-              and kindly. No deposits, no hidden costs, no runaround.
+              RWF 300,000 to 20,000,000. You see the full cost before you sign.
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link
                 href="/apply"
                 className="rounded-full bg-[var(--color-accent)] px-7 py-3.5 font-semibold text-[var(--color-ink)] transition-colors hover:bg-[var(--color-accent-soft)]"
               >
-                Apply now
+                Apply
               </Link>
-              <Link
-                href="/loans"
+              <a
+                href={`tel:${company.phone.replace(/\s/g, "")}`}
                 className="rounded-full border border-white/40 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10"
               >
-                See loan options
-              </Link>
+                Call {company.phone}
+              </a>
             </div>
           </div>
 
           <div className="flex items-end">
-            <div className="grid w-full grid-cols-2 gap-4">
-              {[
-                { big: "24h", small: "Typical decision time" },
-                { big: "RWF 20M", small: "Maximum loan amount" },
-                { big: "0", small: "Hidden fees, ever" },
-                { big: "100%", small: "Rwanda-based & registered" },
-              ].map((f) => (
-                <div key={f.small} className="rounded-3xl bg-white/12 p-5 backdrop-blur-sm">
-                  <div className="font-display text-3xl font-extrabold text-[var(--color-accent-soft)]">
-                    {f.big}
-                  </div>
-                  <div className="mt-1 text-sm text-white/75">{f.small}</div>
+            <div className="flex w-full gap-10">
+              <div>
+                <div className="font-display text-3xl font-extrabold text-[var(--color-accent-soft)]">
+                  24h
                 </div>
-              ))}
+                <div className="mt-1 text-sm text-white/75">Typical decision time</div>
+              </div>
+              <div>
+                <div className="font-display text-3xl font-extrabold text-[var(--color-accent-soft)]">
+                  RWF 20M
+                </div>
+                <div className="mt-1 text-sm text-white/75">Maximum loan amount</div>
+              </div>
             </div>
           </div>
         </div>
@@ -76,10 +72,10 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-5 py-20">
         <div className="max-w-xl">
           <h2 className="font-display text-3xl font-extrabold text-[var(--color-ink)] md:text-4xl">
-            Loans built around your life
+            Six loan types, one rate
           </h2>
           <p className="mt-3 text-[var(--color-ink-soft)]">
-            Whatever you need it for, we keep the terms clear and the process simple.
+            Every loan carries the same 5% monthly reducing-balance rate.
           </p>
         </div>
 

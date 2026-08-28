@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Cham Business Ltd — Friendly Personal Loans in Rwanda";
+export const alt = "Cham Business Ltd — loans from RWF 300,000 to 20,000,000 in Kigali, Rwanda";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -60,30 +60,16 @@ export default function Image() {
             maxWidth: 900,
           }}
         >
-          Friendly personal loans for individuals across Rwanda
+          Loans from the Kicukiro office.
         </div>
         <div
           style={{
-            marginTop: 32,
-            display: "flex",
-            gap: 16,
+            marginTop: 24,
+            fontSize: 26,
+            color: "rgba(255,255,255,0.85)",
           }}
         >
-          {["No hidden fees", "24h decisions", "RWF 300K–20M"].map((chip) => (
-            <div
-              key={chip}
-              style={{
-                display: "flex",
-                fontSize: 22,
-                color: "#ffffff",
-                backgroundColor: "rgba(255,255,255,0.15)",
-                borderRadius: 999,
-                padding: "10px 22px",
-              }}
-            >
-              {chip}
-            </div>
-          ))}
+          RWF 300,000 to 20,000,000. Decision within 2 working days.
         </div>
       </div>
     ),

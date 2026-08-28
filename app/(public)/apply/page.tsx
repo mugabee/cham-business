@@ -17,8 +17,8 @@ export default function ApplyPage() {
     <>
       <PageHeader
         eyebrow="Apply"
-        title="Let's get you started"
-        subtitle="A few details is all we need to begin. It takes about three minutes."
+        title="Apply for a loan"
+        subtitle="Takes about three minutes. We'll email you a verification code before you submit."
       />
 
       <section className="mx-auto max-w-2xl px-5 py-16">
